@@ -1,0 +1,15 @@
+{
+  "agendas": [
+    {
+      "name": "ssh bruteforce linux/windows",
+      "requirements": {
+        "port": "22"
+      },
+      "ability_ids": [
+        "85d6ce79-07ea-4ed4-b763-8a6f7d5591d7",
+        "6a49e8f3-0c00-436e-a848-06de496a942f",
+        "099ea47f-fa4d-4c2e-a089-601eefecb962"
+      ]
+    }
+  ]
+}

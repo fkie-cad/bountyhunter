@@ -1,0 +1,14 @@
+- description: Dump /etc/shadow content
+  id: 8320facd-6bc9-4850-8ecb-02a18064aa91
+  name: Dump /etc/shadow
+  platforms:
+    linux:
+      sh:
+        command: 'cat /etc/shadow'
+  repeatable: false
+  requirements: []
+  tactic: credential-access
+  technique:
+    attack_id: T1003.008
+    name: 'OS Credential Dumping: /etc/passwd and /etc/shadow'
+  privilege: Elevated

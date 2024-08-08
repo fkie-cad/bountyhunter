@@ -1,0 +1,22 @@
+- id: 8fcd3afb-75ca-40da-8bff-432abfb00fbb
+  name: Nmap port scan
+  description: Run Nmap port scan with service/version detection against remote machine.
+  tactic: recon_ports
+  technique:
+    attack_id: T1046
+    name: Network Service Discovery
+  platforms:
+    linux:
+      sh:
+        command: 'nmap -sV -O #{bountyhunter.network.ip}'
+        parsers:
+          plugins.bountyhunter.app.parsers.nmap_port_scan:
+          - source: bountyhunter.network.ip
+            edge: has_port
+            target: host.ports.open
+          - source: bountyhunter.network.ip
+            edge: has_os
+            target: host.os
+  requirements:
+  - plugins.stockpile.app.requirements.paw_provenance:
+    - source: bountyhunter.network.ip

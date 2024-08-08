@@ -1,0 +1,19 @@
+- description: Invoke UAC bypass sdctl
+  id: 0220b3e7-9ba0-4529-abb4-52a70dc49b50
+  name: UAC Bypass via sdctl
+  platforms:
+    windows:
+      psh,pwsh:
+        command: '. .\bypassUAC.ps1;
+
+          bypass;
+
+          '
+        payloads:
+        - bypassUAC.ps1
+  repeatable: false
+  requirements: []
+  tactic: privilege-escalation
+  technique:
+    attack_id: T1134.002
+    name: 'Access Token Manipulation: Create Process with Token'

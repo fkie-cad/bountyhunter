@@ -1,0 +1,17 @@
+---
+
+id: 0b73bf34-fc5b-48f7-9194-dce993b915b1
+name: Bounty Hunter - Initial Access Tester
+description: |
+  Adversary Profile for Bounty Hunter initial access testing against Windows and Linux Targets.
+  Finds and exfiltrates sensitive files after successful initial access.
+atomic_ordering:
+  - 9c109820-6c4d-4378-9a82-00a75323bfda        # Nmap host scan
+  - 8fcd3afb-75ca-40da-8bff-432abfb00fbb        # Nmap port scan
+  - 720a3356-eee1-4015-9135-0fc08f7eb2d5        # Find git repositories
+  - 2f90d4de-2612-4468-9251-b220e3727452        # compress git repository
+  - 6469befa-748a-4b9c-a96d-f191fde47d89        # Create staging directory
+  - 4e97e699-93d7-4040-b5a3-2e906a58199e        # stage sensitive files
+  - 90c2efaa-8205-480d-8bb6-61d90dbaf81b        # find files
+  - 300157e5-f4ad-4569-b533-9d1fa0e74d74        # compress staged directory
+  - ea713bc4-63f0-491c-9a6f-0b01d560b87e        # exfil staged directory

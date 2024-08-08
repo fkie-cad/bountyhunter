@@ -1,0 +1,36 @@
+- access: {}
+  singleton: false
+  delete_payload: true
+  technique_name: Active Scanning
+  name: Arp-scan
+  tactic: recon_ips
+  buckets:
+  - recon_ips
+  additional_info: {}
+  executors:
+  - build_target: null
+    command: 'echo "kali" | sudo -S arp-scan -l -I #{bountyhunter.network.name}'
+    parsers:
+    - module: plugins.bountyhunter.app.parsers.arp
+      parserconfigs:
+      - edge: has_ip
+        custom_parser_vals: {}
+        source: bountyhunter.network.name
+        target: bountyhunter.network.ip
+    name: sh
+    language: null
+    additional_info: {}
+    payloads: []
+    variations: []
+    cleanup: []
+    timeout: 60
+    code: null
+    platform: linux
+    uploads: []
+  privilege: ''
+  description: Run Arp-scan on network to discover IP addresses.
+  plugin: bountyhunter
+  requirements: []
+  repeatable: false
+  technique_id: T1595
+  id: f7b3d2cf-d802-4535-8926-1d00c76008c0
