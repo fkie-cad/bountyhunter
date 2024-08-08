@@ -89,6 +89,7 @@ One examples is given above, in the section "Locked Abilities and Manual Reward 
 - Copy the `bountyhunter` directory into `caldera/plugins` and enable the plugin in the Caldera server's configuration (`caldera/conf/<config>.yml`)
 - Install requirements: `pip install -r requirements.txt`
 - Unzip `caldera/plugins/bountyhunter/payloads/payloads.zip` to `caldera/plugins/bountyhunter/payloads`
+- Remember to add the `--build` flag when starting the Caldera server with the Bounty Hunter for the first time
 
 # Bounty Hunter Configuration
 
