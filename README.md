@@ -1,19 +1,52 @@
 # The Bounty Hunter
 
 The Bounty Hunter is a custom Caldera Plugin developed and implemented by Fraunhofer FKIE.
-The biggest asset of the Bounty Hunter Plugin is the new Bounty Hunter Planner that allows the emulation of complete, realistic cyberattack chains - including autonomous initial access and privilege escalation methods.
-The attack behavior of an emulated adversary using the Bounty Hunter Planner has two special properties:
-First, it is goal-oriented and reward-driven, similar to the Look-Ahead Planner, and second, it is variable due to weighted-randomness in its decision process.
-Furthermore, configurable ability reward updates during a running operation allow more complex and realistic attack chains.
+The biggest asset of the Bounty Hunter Plugin is the new Bounty Hunter Planner that allows the emulation of complete, realistic cyberattack chains.
 
-Notes:
+To get an idea of the Bounty Hunter's capabilities, its key features are described below.
+Furthermore, since it might seem similar to existing Caldera planners at first glance, e.g., the Look-Ahead Planner, their differences are described as well.
+
+- **Weighted-Random Attack Behavior.**
+The Bounty Hunter's attack behavior is goal-oriented and reward-driven, similar to the Look-Ahead Planner.
+But, instead of picking the ability with the highest future reward value every time, it offers the possibility to pick the next ability weighted-randomly.
+This adds an uncertainty to the planner's behavior which allows repeated runs of the same operation with completely different results.
+This might be very useful in some cases, e.g., in training environments.
+
+- **Support for Initial Access and Privilege Escalation.** 
+At the moment, no Caldera planner offers support for Initial Access or Privilege Escalation methods.
+The Bounty Hunter extends Caldera's capabilities by offering support for both in a fully autonomous manner.
+This enables it to emulate complete cyberattack chains.
+
+- **Further Configurations for more sophisticated and realistic Attack Behavior.**
+The Bounty Hunter offers various configuration parameters, e.g., "locking" abilities, reward updates, and final abilities, to customize the emulated attack behavior (see section "Bounty Hunter Configuration" below). 
+Also, one example of how to use these parameters is given in the section "Locked Abilities and Manual Reward Updates".
+
+**Usage notes:**
 - The initial access phase of the Bounty Hunter can be skipped by assigning the initial agent to the group `target`.
 - Initial Access and privilege escalation methods are only implemented as "weak" proof of concept for Windows and Linux targets.
 
+The following sections are structured as follows:
+First, a short installation guide is given.
+Then, two examples are introduced that show how the Bounty Hunter can be used and what is capable of.
+The first example demonstrates the Bounty Hunter's initial access and privilege escalation capabilities and can be used as a tutorial on how to use it, while the second example shows the complexity of cyberattacks the Bounty Hunter can emulate.
+Finally, a more detailed description of how the Bounty Hunter works, how it can be configured, and how it could be extended is given.
+
+# Installation
+
+- Download the plugin
+- Copy the `bountyhunter` directory into `caldera/plugins` and enable the plugin in the Caldera server's configuration (`caldera/conf/<config>.yml`)
+- Install requirements: `pip install -r requirements.txt`
+- Unzip `caldera/plugins/bountyhunter/payloads/payloads.zip` to `caldera/plugins/bountyhunter/payloads`
+- Remember to add the `--build` flag when starting the Caldera server with the Bounty Hunter for the first time
+
 # Emulating complete, realistic Cyberattacks with the Bounty Hunter
 
-## Initial Access and Privilege Escalation Demonstration
-The following section describes how to emulate a complete, realistic cyberattack chain using the Bounty Hunter.
+The following two sections describe two examples how the Bounty Hunter can be used and what it is capable of.
+The first example shows how the initial access and privilege escalation capabilities of the Bounty Hunter can be tested using demo adversaries and abilities.
+In the second section an example attack based on an APT29 campaign is presented that shows that the complexity of cyberattacks the Bounty Hunter can emulate.
+
+## Scenario #1 - Initial Access and Privilege Escalation
+The following section describes how to emulate a complete, realistic cyberattack chain using the Bounty Hunter and can be used as a guide for getting started with it.
 To run an operation,  start the Caldera server as usual.
 As starting point, the Bounty Hunter uses a local Caldera agent, i.e., an agent that is running on a system initially controlled by the adversary.
 Since some initial access abilities, e.g., the Nmap Port Scan (`8fcd3afb-75ca-40da-8bff-432abfb00fbb`), need root privileges, start the local agent with root/sudo. 
@@ -27,7 +60,8 @@ Before running the operation, some configurations have to be done:
 
 For Linux Target:
 
-Edit sudoers file so that user whose credentials are gathered using the ssh brute force can execute `sudo /bin/bash` without password (see example for metasploitable3 below). This is the weak configuration used for the privilege escalation.
+Edit sudoers file so that the user whose credentials are gathered using the ssh brute force can execute `sudo /bin/bash` without password (see example for metasploitable3 below).
+This is a common weak configuration that will be used for the privilege escalation.
 ```
 (...)
 
@@ -40,7 +74,6 @@ For Windows Target:
 2. Update IP address value in payload `credDump.ps1`: Since this script downloads mimikatz from the Caldera server, the IP address and port of the Caldera server have to be configured here. More information in the payload itself.
 3. Log in as the user we want to compromise so that the scheduled task will be executed during initial access.
 4. Set up a Windows target with SSH enabled and set UAC to `Never Nofify`. Also disable Antivirus/Microsoft Defender (especially Real-time protection) since Caldera does not work with them running.
-
 
 After performing the configuration steps, a new operation can be started using the Bounty Planner and the demo adversary profile.
 The expected results are shown in the figure below.
@@ -55,7 +88,7 @@ Note how you can see the Bounty Hunter using the three different agents during t
 
 ![](assets/bountyhunter_example_operation.png)
 
-## Emulating an APT29 Campaign
+## Scenario #2 - Emulating an APT29 Campaign
 
 The Bounty Hunter Planner was tested using the APT29 Day 2 data from the [adversary emulation library](https://github.com/center-for-threat-informed-defense/adversary_emulation_library/) of the Center for Threat Informed Defense.
 The resulting attack chain including fact-links between abilities is shown in the figure below.
@@ -66,68 +99,46 @@ All other information needed for the successful execution, including the Domain 
 
 ![](assets/apt29day2bountyhunter.png)
 
-# Deltas to existing Caldera Planners
+# Advanced Information and Configuration
 
-Since the Bounty Hunter seems very similar to existing Caldera planners, e.g., the Look Aheader planner, this section describes the differences between them in more detail.
+The following section go into more detail about how the Bounty Hunter works, how it can be configured, and how it could be extended.
 
-- **Support for Initial Access and Privilege Escalation.** 
-At the moment, no Caldera planner offers support for Initial Access or Privilege Escalation methods.
-The Bounty Hunter extends Caldera's capabilities by offering support to both in a fully autonomous manner.
+## Bounty Hunter Configuration
 
-- **Weighted-Random Attack Behavior.**
-The Bounty Hunter offers the possibility to pick the next ability to execute weighted-randomly based on the abilities' future reward values.
-This adds an uncertainty to the planners behavior which allows repeated runs of the same operation with completely different results.
-This might be very useful for training environments.
-
-- **Further Configurations for more sophisticated and realistic Attack Behavior.**
-The various configurations that are possible using the Bounty Hunter, e.g., "locking" abilities, reward updates, and final abilities, allow a plethora of possible attack behaviors.
-One examples is given above, in the section "Locked Abilities and Manual Reward Updates".
-
-# Installation
-
-- Download the plugin
-- Copy the `bountyhunter` directory into `caldera/plugins` and enable the plugin in the Caldera server's configuration (`caldera/conf/<config>.yml`)
-- Install requirements: `pip install -r requirements.txt`
-- Unzip `caldera/plugins/bountyhunter/payloads/payloads.zip` to `caldera/plugins/bountyhunter/payloads`
-- Remember to add the `--build` flag when starting the Caldera server with the Bounty Hunter for the first time
-
-# Bounty Hunter Configuration
-
-The Bounty Hunter's can be configured in many ways to further customize the emulated attack behavior.
+The Bounty Hunter can be configured in many ways to further customize the emulated attack behavior.
 The configuration can be viewed and edited in `bountyhunter/data/planners/e1bb9388-1845-495d-b67b-ad61a31ff6cd.yml`.
 Furthermore, the configuration is displayed in the Bounty Hunter's user interface tab (`plugins -> bountyhunter`).
 The configuration can also (partially) be edited using the user interface after pulling [this Caldera branch](https://github.com/L015H4CK/caldera/tree/feature-api-update-planner), which allows updating existing planners using Caldera's API.
 
 The following table lists the various parameters used by the Bounty Hunter including a short description and the default values.
 
-| Parameter             | Description                                                                                                                                                                                                                  | Default Value |
-|-----------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|---------------|
-| weighted_random       | Enables/disables weighted random attack behavior. If enabled, the next ability to execute is picked weighted-randomly depending on the abilities' reward values. If disabled, the ability with the highest reward is picked. | False         |
-| seed                  | Specifies the seed value to use for random decisions during the weighted-random attack behavior as well as the initial access and privilege escalation phases. Allows reproduction.                                          | None          | 
-| discount              | Discount factor for future reward calculation.                                                                                                                                                                               | 0.9           |
-| depth                 | Recursive depth for future reward calculation.                                                                                                                                                                               | 3             |
-| default_reward        | Default reward value for all abilities.                                                                                                                                                                                      | 1             |
-| default_final_reward  | Default reward value for all final abilities. Should be larger than the default_reward, so that the planner tries to pursuit them (more likely).                                                                             | 1000          |
-| default_reward_update | Default reward update value. After executing an ability all "following" abilities' (i.e., abilities that require facts that are collected by the executed ability) reward values are increased by this value.                | 200           |
-| final_abilities       | List of final ability IDs. Operation stops when one of those abilities is executed.                                                                                                                                          | None          |
-| locked_abilities      | List of locked ability IDs. These abilities will not be executed until they are "unlocked" by increasing their ability reward.                                                                                               | None          |
-| ability_rewards       | List of ability IDs and corresponding reward values. Allows further attack behavior customization.                                                                                                                           | None          |
-| reward_updates        | List of custom reward update values per ability ID. Allows further attack behavior customization and "unlocking" abilities that are not logically (i.e., by facts) connected.                                                | None          |
+| Parameter             | Description                                                                                                                                                                                                         | Default Value |
+|-----------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|---------------|
+| weighted_random       | Toggles weighted random attack behavior. If enabled, the next ability to execute is picked weighted-randomly depending on the abilities' reward values. If disabled, the ability with the highest reward is picked. | False         |
+| seed                  | Seed value to use for random decisions during the weighted-random attack behavior as well as the initial access and privilege escalation phases. Allows reproduction.                                               | None          | 
+| discount              | Discount factor for future reward calculation.                                                                                                                                                                      | 0.9           |
+| depth                 | Recursive depth for future reward calculation.                                                                                                                                                                      | 3             |
+| default_reward        | Default reward value for all abilities.                                                                                                                                                                             | 1             |
+| default_final_reward  | Default reward value for all final abilities. Should be larger than the default_reward, so that the planner tries to pursuit them (more likely).                                                                    | 1000          |
+| default_reward_update | Default reward update value. After executing an ability all "following" abilities' (i.e., abilities that require facts that are collected by the executed ability) reward values are increased by this value.       | 200           |
+| final_abilities       | List of final ability IDs. Operation stops when one of those abilities is executed.                                                                                                                                 | None          |
+| locked_abilities      | List of locked ability IDs. These abilities will not be executed until they are "unlocked" by increasing their ability reward.                                                                                      | None          |
+| ability_rewards       | List of ability IDs and corresponding reward values. Allows further attack behavior customization.                                                                                                                  | None          |
+| reward_updates        | List of custom reward update values per ability ID. Allows further attack behavior customization and "unlocking" abilities that are not logically (i.e., by facts) connected.                                       | None          |
 
+## Future Reward Calculation
 
-# Future Reward Calculation
-
-The future reward calculation is performed in the same way as in the look ahead planner.
+The future reward calculation is performed in the same way as in the Look-Ahead Planner.
 It uses ability rewards (configured using the various ability reward parameters above) as well as the discount and depth parameters.
 The ability rewards are directly used during the anticipated future reward calculation.
 How far, i.e., how many abilities ahead, the Bounty Hunter uses ability rewards is controlled by the depth parameter while the discount factor controls how much influence future ability reward values have on the calculation.
 
-# Locked Abilities and Manual Reward Updates
+## Locked Abilities and Manual Reward Updates
 
 Locking abilities and performing manual reward updates enables the Bounty Hunter to perform more realistic, more sophisticated and customized attacks.
 Consider the example adversary `Bounty Hunter - Locked Abilities Demonstrator` with the following abilities: `Find files`, `Stage sensitive files`, `Create staging directory`, `Compress staged directory`, and `Exfil staged directory`.
 Also, the ability `Exfil staged directory` has a high reward value, e.g., `1000`.
-When using Caldera's look ahead planner, the agent will execute the following attack chain:
+When using Caldera's Look-Ahead Planner, the agent will execute the following attack chain:
 - Create staging directory
 - Compress staged directory
 - Exfil staged directory
@@ -158,9 +169,9 @@ Now, when running an operation using the Bounty Hunter and the above configurati
 - Exfil staged directory
 
 As we can see, the resulting attack chain is more sophisticated and more realistic because the exfiltrated directory is not empty.
-Furthermore, the planner automatically stops the operation after executing the goal ability, compared to the Look Ahead that continued with collecting and staging files after already exfiltrating.
+Furthermore, the planner automatically stops the operation after executing the goal ability, compared to the Look-Ahead Planner that continued with collecting and staging files after already exfiltrating.
 
-# Initial Access Agendas
+## Initial Access Agendas
 
 Initial Access Agendas are predefined ability chains that the Bounty Hunter uses during the Initial Access phase.
 After scanning the potential targets, the agendas help the planner decide how to continue the operation.
@@ -168,7 +179,7 @@ Defining the agendas as ability chains allows more sophisticated scenarios than 
 Also, during the Initial Access phase, the attacker's behavior should be more straight-forward instead of simply adding all abilities to the current adversary and letting the planner decide which ability to execute based on facts and requirements.
 Each agenda should have the goal to start a new Caldera agent on the target machine.
 
-## Agenda Configuration
+### Agenda Configuration
 Agendas are defined in `bountyhunter/conf/agenda_mapping.json`.
 Each agenda has a name, requirements and a list of ability IDs.
 An agenda is considered "valid" if all its requirements are met.
