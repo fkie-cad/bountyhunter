@@ -9,7 +9,7 @@
   additional_info: {}
   executors:
   - build_target: null
-    command: 'echo "kali" | sudo -S arp-scan -l -I #{bountyhunter.network.name}'
+    command: 'arp-scan -l -I #{bountyhunter.network.name}'
     parsers:
     - module: plugins.bountyhunter.app.parsers.arp
       parserconfigs:
