@@ -23,12 +23,13 @@ Also, one example of how to use these parameters is given in the section "Locked
 
 **Usage notes:**
 - The initial access phase of the Bounty Hunter can be skipped by assigning the initial agent to the group `target`.
-- Initial Access and privilege escalation methods are only implemented as "weak" proof of concept for Windows and Linux targets.
+- Initial Access and Privilege Escalation methods are only implemented as "weak" proof of concept for Windows and Linux targets.
 
 The following sections are structured as follows:
 First, a short installation guide is given.
-Then, two examples are introduced that show how the Bounty Hunter can be used and what is capable of.
-The first example demonstrates the Bounty Hunter's initial access and privilege escalation capabilities and can be used as a tutorial on how to use it, while the second example shows the complexity of cyberattacks the Bounty Hunter can emulate.
+Then, two examples are introduced that show how the Bounty Hunter can be used and what it is capable of.
+The first example demonstrates the Bounty Hunter's initial access and privilege escalation capabilities and can be used as a guide on how to use it
+The second example shows the high level of complexity of cyberattacks the Bounty Hunter can emulate.
 Finally, a more detailed description of how the Bounty Hunter works, how it can be configured, and how it could be extended is given.
 
 # Installation
@@ -43,7 +44,7 @@ Finally, a more detailed description of how the Bounty Hunter works, how it can 
 
 The following two sections describe two examples how the Bounty Hunter can be used and what it is capable of.
 The first example shows how the initial access and privilege escalation capabilities of the Bounty Hunter can be tested using demo adversaries and abilities.
-In the second section an example attack based on an APT29 campaign is presented that shows that the complexity of cyberattacks the Bounty Hunter can emulate.
+In the second section an example attack based on an APT29 campaign is presented that shows the high level of complexity of cyberattacks the Bounty Hunter can emulate.
 
 ## Scenario #1 - Initial Access and Privilege Escalation
 The following section describes how to emulate a complete, realistic cyberattack chain using the Bounty Hunter and can be used as a guide for getting started with it.
