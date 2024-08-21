@@ -18,8 +18,9 @@ The Bounty Hunter extends Caldera's capabilities by offering support for both in
 This enables it to emulate complete cyberattack chains.
 
 - **Further Configurations for more sophisticated and realistic Attack Behavior.**
-The Bounty Hunter offers various configuration parameters, e.g., "locking" abilities, reward updates, and final abilities, to customize the emulated attack behavior (see section "Bounty Hunter Configuration" below). 
-Also, one example of how to use these parameters is given in the section "Locked Abilities and Manual Reward Updates".
+The Bounty Hunter offers various configuration parameters, e.g., "locking" abilities, reward updates, and final abilities, to customize the emulated attack behavior (see section "Bounty Hunter Configuration" below).
+For example, the ability `Compress staged directory` can be configured as "locked" and only be "unlocked" by executing `Stage sensitive files` in order to prevent that an empty staging directory gets compressed and exfiltrated.
+This example of how to use these parameters is described in more detail in the section "Locked Abilities and Manual Reward Updates".
 
 **Usage notes:**
 - The initial access phase of the Bounty Hunter can be skipped by assigning the initial agent to the group `target`.
@@ -214,3 +215,10 @@ Three abilities are added to the running operation and executed:
 To add a new agenda, implement the respective abilities, e.g., for exploiting a known vulnerability, and create a new entry in the `agendas` list.
 Then, add the ability IDs, a name, and the requirements.
 The Bounty Hunter will autonomously decide if an agenda is valid and will consider executing it during the Initial Access phase.
+
+# Contributing
+We welcome any contributions, questions and ideas.
+If you have any questions or want to contact us, feel free to open an issue or a pull request.
+
+# License
+Released under Apache-2.0 license. For more information see LICENSE.
