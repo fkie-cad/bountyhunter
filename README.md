@@ -216,6 +216,10 @@ To add a new agenda, implement the respective abilities, e.g., for exploiting a 
 Then, add the ability IDs, a name, and the requirements.
 The Bounty Hunter will autonomously decide if an agenda is valid and will consider executing it during the Initial Access phase.
 
+# Resources
+
+- [Blog Post](https://lolcads.github.io/posts/2024/09/bountyhunter/) that introduces the Bounty Hunter and gives some information about adversary emulation, its challenges, and Caldera.
+
 # Contributing
 We welcome any contributions, questions and ideas.
 If you have any questions or want to contact us, feel free to open an issue or a pull request.
