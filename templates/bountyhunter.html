@@ -1,0 +1,22 @@
+<html>
+  <head>
+    <div style="text-align: left">
+      <h1 style="font-size:32px;color:white">The Bounty Hunter Plugin</h1>
+        <p>
+          The Bounty Hunter Planner is a custom Caldera Planner developed and implemented by Fraunhofer FKIE.
+          The general idea behind the Bounty Hunter's implementation was to support initial access and privilege escalation methods to allow the emulation of complete, realistic attack chains.
+          This kind of behavior is not supported by any other Caldera planner, at the moment.
+          Furthermore, it contributes a new attack behavior for Caldera adversaries.
+          It decides which ability to use next using the future_rewards() function introduced in the look ahead planner.
+          Instead of choosing the 'best ability' in every step, a weighted-random decision is made.
+          Furthermore, after every executed ability, rewards of other abilities are updated according to the planners configuration file and the abilities' relationship.
+          This way, the planner weighted-randomly chooses which abilities to execute and pursues one procedure more likely once it has started, i.e. use following abilities more likely.
+          The planner's behavior can be controlled using various parameters.
+          The 'final_abilities' is the most controlling parameter since it basically 'defines' which goal the adversary should pursue (most likely).
+
+          The initial access phase of the Bounty Hunter can be skipped by assigning the initial agent to the group `target`.
+          For more information, see the planner''s README.md in `caldera/plugins/bountyhunter/`.
+        </p>
+      </div>
+  </head>
+
