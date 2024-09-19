@@ -1,16 +1,3 @@
-vagrant
-leah_organa
-luke_skywalker
-han_solo
-artoo_detoo
-c_three_pio
-ben_kenobi
-darth_vader
 anakin_skywalker
 jarjar_binks
 lando_calrissian
-boba_fett
-jabba_hutt
-greedo
-chewbacca
-kylo_ren
