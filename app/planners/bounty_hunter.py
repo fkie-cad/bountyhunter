@@ -1,4 +1,5 @@
 from numpy.random import choice, seed
+from yaml import safe_load
 
 from plugins.bountyhunter.app.helper.agenda_helper import AgendaHelper
 
@@ -27,28 +28,13 @@ class LogicalPlanner:
     DISCOUNT = 0.9
     SEED = None
 
-    def __init__(self, operation, planning_svc, stopping_conditions=(),
-                 depth=DEPTH, discount=DISCOUNT,
-                 default_reward=DEFAULT_REWARD,
-                 default_final_reward=DEFAULT_FINAL_REWARD,
-                 default_reward_update=DEFAULT_REWARD_UPDATE,
-                 final_abilities=None, ability_rewards=None, locked_abilities=None, reward_updates=None,
-                 seed=SEED, weighted_random=False
-    ):
+    def __init__(self, operation, planning_svc, scenario, stopping_conditions=()):
         """
 
         :param operation:
         :param planning_svc:
+        :param scenario: Name of the scenario in bountyhunter/conf to be used
         :param stopping_conditions:
-        :param depth: recursive depth of future reward function
-        :param discount: discount factor of future abilities
-        :param default_reward: default reward value for all abilities
-        :param default_final_reward: default reward value for all final abilities
-        :param default_reward_update: default reward update value for all abilities
-        :param final_abilities: list of final ability IDs
-        :param ability_rewards: list of ability IDs with corresponding reward value
-        :param locked_abilities: list of ability IDs of abilities that are locked by default
-        :param reward_updates: list of custom reward update values per ability
         """
 
         self.operation = operation
@@ -67,25 +53,13 @@ class LogicalPlanner:
             "execute_elevated"
         ]
 
-        self.depth = depth
-        self.discount = discount
-
-        self.default_reward = default_reward
-        self.default_final_reward = default_final_reward
-        self.default_reward_update = default_reward_update
-
-        self.final_abilities = final_abilities or {}
-        self.initial_ability_rewards = ability_rewards or {}
-        self.ability_rewards = None
-        self.initial_locked_abilities = locked_abilities or {}
-        self.locked_abilities = None
-        self.reward_updates = reward_updates or {}
+        self.scenario = scenario
+        self._init_parameters()
 
         self.agent_waiting_for_elevation = None
         self.host_waiting_for_elevation = None
         self.ability_waiting_for_elevation = None
 
-        self.seed = seed
         self.start_agent = None
 
         self.agenda_helper = AgendaHelper()
@@ -94,9 +68,28 @@ class LogicalPlanner:
 
         self.after_sleep_bucket = None
 
-        self.weighted_random = weighted_random
-
         self.planning_svc.log.info("<BountyHunter> Seed: {}".format(self.seed))
+
+    def _init_parameters(self):
+        with open("plugins/bountyhunter/conf/" + self.scenario + "/scenario_params.yml") as f:
+            scenario_config = safe_load(f)
+
+        self.depth = scenario_config.get("depth", self.DEPTH)
+        self.discount = scenario_config.get("discount", self.DISCOUNT)
+
+        self.default_reward = scenario_config.get("default_reward", self.DEFAULT_REWARD)
+        self.default_final_reward = scenario_config.get("default_final_reward", self.DEFAULT_FINAL_REWARD)
+        self.default_reward_update = scenario_config.get("default_reward_update", self.DEFAULT_REWARD_UPDATE)
+
+        self.final_abilities = scenario_config.get("final_abilities", {})
+        self.initial_ability_rewards = scenario_config.get("ability_rewards", {})
+        self.ability_rewards = None
+        self.initial_locked_abilities = scenario_config.get("locked_abilities", {})
+        self.locked_abilities = None
+        self.reward_updates = scenario_config.get("reward_updates", {})
+
+        self.weighted_random = scenario_config.get("weighted_random", False)
+        self.seed = scenario_config.get("seed", self.SEED)
 
     async def execute(self):
         self.ability_rewards = self.initial_ability_rewards.copy()
@@ -439,7 +432,6 @@ class LogicalPlanner:
         for ability in abilities:
             if ability.ability_id not in self.locked_abilities:
                 ability_rewards.append((ability.ability_id, await self._future_reward(agent, ability, abilities, 0), ))
-                # ability_rewards[ability.ability_id] = await self._future_reward(agent, ability, abilities, 0)
 
         return ability_rewards
 

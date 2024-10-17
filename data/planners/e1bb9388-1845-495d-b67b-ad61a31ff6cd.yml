@@ -17,22 +17,4 @@ description: |
 module: plugins.bountyhunter.app.planners.bounty_hunter
 ignore_enforcement_modules: []
 params:
-  #seed: 42123
-  #weighted_random: False
-  #depth: 3
-  #discount: 0.9
-  #default_final_reward: 1000
-  #default_reward_update: 500
-  final_abilities:
-    - 8320facd-6bc9-4850-8ecb-02a18064aa91         # Dump /etc/shadow
-    - a440211a-d2cc-4f89-a02d-a39061a0e697         # Credential Dumping via wmidump (mimikatz)
-    #- ea713bc4-63f0-491c-9a6f-0b01d560b87e        # exfiltrate staged directory
-  #ability_rewards:
-  #  4e97e699-93d7-4040-b5a3-2e906a58199e: 1000    # stage sensitive files
-  #locked_abilities:
-  #  - 300157e5-f4ad-4569-b533-9d1fa0e74d74        # compress staged directory
-  #reward_updates:
-    #6469befa-748a-4b9c-a96d-f191fde47d89:         # create staging directory
-      #4e97e699-93d7-4040-b5a3-2e906a58199e: 10000 # stage sensitive files
-    #4e97e699-93d7-4040-b5a3-2e906a58199e:         # stage sensitive files
-      #300157e5-f4ad-4569-b533-9d1fa0e74d74: 1     # compress staged directory
+  scenario: scenario1
