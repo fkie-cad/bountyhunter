@@ -40,6 +40,7 @@ Finally, a more detailed description of how the Bounty Hunter works, how it can 
 - Install requirements: `pip install -r requirements.txt`
 - Unzip `caldera/plugins/bountyhunter/payloads/payloads.zip` to `caldera/plugins/bountyhunter/payloads`
 - Remember to add the `--build` flag when starting the Caldera server with the Bounty Hunter for the first time
+- Note: The Bounty Hunter works with Caldera v5.0.0 or v4.2.0
 
 ## Docker installation guide
 
