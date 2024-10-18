@@ -123,8 +123,9 @@ The following section go into more detail about how the Bounty Hunter works, how
 ## Bounty Hunter Configuration
 
 The Bounty Hunter can be configured in many ways to further customize the emulated attack behavior.
-Its parameters can be configured in different scenario config files (`bountyhunter/conf/<scenario_name>/scenario_params.yml`).
-Which scenario to use can be configured in `bountyhunter/data/planners/e1bb9388-1845-495d-b67b-ad61a31ff6cd.yml`.
+Its parameters can be configured using scenario configuration files (`bountyhunter/conf/<scenario_name>/scenario_params.yml`).
+The `default` scenario shows all the possible configuration parameters with example values.
+Which scenario the Bounty Hunter should use can be configured in its configuration file (`bountyhunter/data/planners/e1bb9388-1845-495d-b67b-ad61a31ff6cd.yml`).
 
 The following table lists the various parameters used by the Bounty Hunter including a short description and the default values.
 

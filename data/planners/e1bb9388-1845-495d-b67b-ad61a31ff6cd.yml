@@ -17,4 +17,4 @@ description: |
 module: plugins.bountyhunter.app.planners.bounty_hunter
 ignore_enforcement_modules: []
 params:
-  scenario: demo_initial_access_and_priv_esc
+  scenario: default
