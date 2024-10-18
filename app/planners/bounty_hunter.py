@@ -389,7 +389,7 @@ class LogicalPlanner:
             ability_reward_tuples.sort(key=lambda t: t[1], reverse=True)
 
         for art in ability_reward_tuples:
-            self.planning_svc.log.debug("<BountyHunter> Shuffled/Sorted Ability Rewards: {}".format(art))
+            self.planning_svc.log.info("<BountyHunter> Shuffled/Sorted Ability Rewards: {}".format(art))
 
         for ability_reward_tuple in ability_reward_tuples:
             for link in executable_links:

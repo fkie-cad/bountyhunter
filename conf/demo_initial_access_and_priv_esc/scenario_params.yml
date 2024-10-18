@@ -1,0 +1,5 @@
+name: Initial Access and Privilege Escalation Demo Scenario
+description: Use with adversary profile "Bounty Hunter - Demo Adversary Profile" or "Bounty Hunter - Initial Access and Privilege Escalation Tester" and elevated agent running on host machine.
+final_abilities:
+  - 8320facd-6bc9-4850-8ecb-02a18064aa91            # Dump /etc/shadow
+  - a440211a-d2cc-4f89-a02d-a39061a0e697            # Credential Dumping via wmidump (mimikatz)

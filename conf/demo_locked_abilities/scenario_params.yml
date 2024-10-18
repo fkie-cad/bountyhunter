@@ -1,13 +1,5 @@
-Name: Locked Ability Demo Scenario
-seed: 4711
-#weighted_random: False
-#depth: 3
-discount: 0.7
-default_final_reward: 1000
-#default_reward: 1
-default_reward_update: 0
-detectability_factor: 1
-success_factor: 1
+name: Locked Ability Demo Scenario
+description: Use with adversary profile "Bounty Hunter - Demo Adversary Profile" or "Bounty Hunter - Locked Abilities Demonstrator" and an agent running on the target machine in group "target".
 final_abilities:
   - ea713bc4-63f0-491c-9a6f-0b01d560b87e           # exfiltrate staged directory
 locked_abilities:
