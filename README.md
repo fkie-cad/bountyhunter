@@ -53,7 +53,7 @@ The following section describes how to emulate a complete, realistic cyberattack
 To run an operation,  start the Caldera server as usual.
 As starting point, the Bounty Hunter uses a local Caldera agent, i.e., an agent that is running on a system initially controlled by the adversary.
 Since some initial access abilities, e.g., the Nmap Port Scan (`8fcd3afb-75ca-40da-8bff-432abfb00fbb`), need root privileges, start the local agent with root/sudo.
-To run this scenario, configure to use the scenario `demo_initial_access_and_priv_esc` in the Bounty Hunter's configuration (`data/planners/e1bb9388-1845-495d-b67b-ad61a31ff6cd.yml`). 
+To run this scenario, set the scenario in the Bounty Hunter's configuration (`data/planners/e1bb9388-1845-495d-b67b-ad61a31ff6cd.yml`) to `demo_initial_access_and_priv_esc` . 
 The `Bounty Hunter Windows Initial Access and Privilege Escalation Tester` adversary profile was constructed to demonstrate the initial access and privilege escalation capabilities against a Windows or Linux target.
 Alternatively, the `Bounty Hunter - Demo Adversary Profile` can be used as well - which includes all demo abilities for the Bounty Hunter and can be used to demonstrate the various behaviors controlled by the scenario configurations.
 
