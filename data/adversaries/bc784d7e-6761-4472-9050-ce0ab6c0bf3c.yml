@@ -1,0 +1,23 @@
+---
+
+id: bc784d7e-6761-4472-9050-ce0ab6c0bf3c
+name: Bounty Hunter - Demo Adversary Profile
+description: |
+  Adversary Profile for Bounty Hunter Demo scenarios.
+  Depending on the selected scenario in the planner's config, the resulting behavior should be either:
+  (1) Perform initial access and collect current user name
+  (2) Perform initial access, privilege escalation and execute ability that needs elevated privileges
+  (3) Find, stage and exfiltrate sensitive files to demonstrate locked abilities
+atomic_ordering:
+  - 9c109820-6c4d-4378-9a82-00a75323bfda        # Nmap host scan (Scenario 1+2)
+  - 8fcd3afb-75ca-40da-8bff-432abfb00fbb        # Nmap port scan (Scenario 1+2)
+  - bd527b63-9f9e-46e0-9816-b8434d2b8989        # Current User (Scenario 1)
+  - ce6628bc-c1e2-456b-91e7-da5b8bcd4005        # Abuse bash can be executed with sudo privileges (Scenario 2)
+  - 0220b3e7-9ba0-4529-abb4-52a70dc49b50        # UAC Bypass via sdctl (Scenario 2)
+  - a440211a-d2cc-4f89-a02d-a39061a0e697        # Dumping credentials via wmidump (Mimikatz) (Scenario 2)
+  - 8320facd-6bc9-4850-8ecb-02a18064aa91        # Dump /etc/shadow (Scenario 2)
+  - 90c2efaa-8205-480d-8bb6-61d90dbaf81b        # Find Files (Scenario 3)
+  - 4e97e699-93d7-4040-b5a3-2e906a58199e        # Stage sensitive files (Scenario 3)
+  - ea713bc4-63f0-491c-9a6f-0b01d560b87e        # Exfil staged directory (Scenario 3)
+  - 6469befa-748a-4b9c-a96d-f191fde47d89        # Create staging directory (Scenario 3)
+  - 300157e5-f4ad-4569-b533-9d1fa0e74d74        # Compress staged directory (Scenario 3)

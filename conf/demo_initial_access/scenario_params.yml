@@ -1,0 +1,4 @@
+name: Initial Access Demo Scenario
+description: Use with adversary profile "Bounty Hunter - Demo Adversary Profile" or "Bounty Hunter - Initial Access Tester" and elevated agent running on host machine.
+final_abilities:
+  - bd527b63-9f9e-46e0-9816-b8434d2b8989           # Current User
