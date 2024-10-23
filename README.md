@@ -46,7 +46,7 @@ Finally, a more detailed description of how the Bounty Hunter works, how it can 
 
 - Download the plugin
 - Copy the `bountyhunter` directory into `caldera/plugins` and enable the plugin in the Caldera server's configuration (`caldera/conf/<config>.yml`)
-- Add the following lines to the `caldera/Dockerfile` to install the Bounty Hunter requirements during the docker build process
+- Add the following lines to the `caldera/Dockerfile` to install the Bounty Hunter requirements during the docker build process, e.g., at line 77 after the installation of the emu plugins requirements in lines 69-76 
 ```
 WORKDIR /usr/src/app/plugins/bountyhunter
 RUN pip3 install -r requirements.txt
