@@ -29,7 +29,7 @@ This example of how to use these parameters is described in more detail in the s
 The following sections are structured as follows:
 First, a short installation guide is given.
 Then, two examples are introduced that show how the Bounty Hunter can be used and what it is capable of.
-The first example demonstrates the Bounty Hunter's initial access and privilege escalation capabilities and can be used as a guide on how to use it
+The first example demonstrates the Bounty Hunter's initial access and privilege escalation capabilities and can be used as a guide on how to use it.
 The second example shows the high level of complexity of cyberattacks the Bounty Hunter can emulate.
 Finally, a more detailed description of how the Bounty Hunter works, how it can be configured, and how it could be extended is given.
 
@@ -64,8 +64,10 @@ In the second section an example attack based on an APT29 campaign is presented 
 The following section describes how to emulate a complete, realistic cyberattack chain using the Bounty Hunter and can be used as a guide for getting started with it.
 To run an operation,  start the Caldera server as usual.
 As starting point, the Bounty Hunter uses a local Caldera agent, i.e., an agent that is running on a system initially controlled by the adversary.
-Since some initial access abilities, e.g., the Nmap Port Scan (`8fcd3afb-75ca-40da-8bff-432abfb00fbb`), need root privileges, start the local agent with root/sudo. 
-The `Bounty Hunter Windows Initial Access and Privilege Escalation Tester` adversary and the Bounty Hunter's default configuration (`data/planners/e1bb9388-1845-495d-b67b-ad61a31ff6cd.yml`) were constructed to demonstrate the initial access and privilege escalation capabilities against a Windows or Linux target.
+Since some initial access abilities, e.g., the Nmap Port Scan (`8fcd3afb-75ca-40da-8bff-432abfb00fbb`), need root privileges, start the local agent with root/sudo.
+To run this scenario, set the scenario in the Bounty Hunter's configuration (`data/planners/e1bb9388-1845-495d-b67b-ad61a31ff6cd.yml`) to `demo_initial_access_and_priv_esc` . 
+The `Bounty Hunter Windows Initial Access and Privilege Escalation Tester` adversary profile was constructed to demonstrate the initial access and privilege escalation capabilities against a Windows or Linux target.
+Alternatively, the `Bounty Hunter - Demo Adversary Profile` can be used as well - which includes all demo abilities for the Bounty Hunter and can be used to demonstrate the various behaviors controlled by the scenario configurations.
 
 Before running the operation, some configurations have to be done:
 1. Configure fact `bountyhunter.ip_range`: Using the Caldera UI, configure the IP address range the bounty hunter should scan initially.
@@ -121,9 +123,9 @@ The following section go into more detail about how the Bounty Hunter works, how
 ## Bounty Hunter Configuration
 
 The Bounty Hunter can be configured in many ways to further customize the emulated attack behavior.
-The configuration can be viewed and edited in `bountyhunter/data/planners/e1bb9388-1845-495d-b67b-ad61a31ff6cd.yml`.
-Furthermore, the configuration is displayed in the Bounty Hunter's user interface tab (`plugins -> bountyhunter`).
-The configuration can also (partially) be edited using the user interface after pulling [this Caldera branch](https://github.com/L015H4CK/caldera/tree/feature-api-update-planner), which allows updating existing planners using Caldera's API.
+Its parameters can be configured using scenario configuration files (`bountyhunter/conf/<scenario_name>/scenario_params.yml`).
+The `default` scenario shows all the possible configuration parameters with example values.
+Which scenario the Bounty Hunter should use can be configured in its configuration file (`bountyhunter/data/planners/e1bb9388-1845-495d-b67b-ad61a31ff6cd.yml`).
 
 The following table lists the various parameters used by the Bounty Hunter including a short description and the default values.
 
@@ -151,8 +153,8 @@ How far, i.e., how many abilities ahead, the Bounty Hunter uses ability rewards 
 ## Locked Abilities and Manual Reward Updates
 
 Locking abilities and performing manual reward updates enables the Bounty Hunter to perform more realistic, more sophisticated and customized attacks.
-Consider the example adversary `Bounty Hunter - Locked Abilities Demonstrator` with the following abilities: `Find files`, `Stage sensitive files`, `Create staging directory`, `Compress staged directory`, and `Exfil staged directory`.
-Also, the ability `Exfil staged directory` has a high reward value, e.g., `1000`.
+Consider the scenario `demo_locked_abilities` and the example adversary `Bounty Hunter - Locked Abilities Demonstrator` with the following abilities: `Find files`, `Stage sensitive files`, `Create staging directory`, `Compress staged directory`, and `Exfil staged directory`.
+The ability `Exfil staged directory` has a high reward value, e.g., `1000`.
 When using Caldera's Look-Ahead Planner, the agent will execute the following attack chain:
 - Create staging directory
 - Compress staged directory
@@ -166,14 +168,13 @@ Now, the Bounty Hunter can be configured to "lock" the `Compress staged director
 This means, it will only compress the staged directory after files have been staged. See example configuration below.
 
 ```
-params:
-  final_abilities:
-    - ea713bc4-63f0-491c-9a6f-0b01d560b87e        # exfiltrate staged directory
-  locked_abilities:
-    - 300157e5-f4ad-4569-b533-9d1fa0e74d74        # compress staged directory
-  reward_updates:
-    4e97e699-93d7-4040-b5a3-2e906a58199e:         # stage sensitive files
-      300157e5-f4ad-4569-b533-9d1fa0e74d74: 1     # compress staged directory
+final_abilities:
+- ea713bc4-63f0-491c-9a6f-0b01d560b87e        # exfiltrate staged directory
+locked_abilities:
+- 300157e5-f4ad-4569-b533-9d1fa0e74d74        # compress staged directory
+reward_updates:
+4e97e699-93d7-4040-b5a3-2e906a58199e:         # stage sensitive files
+  300157e5-f4ad-4569-b533-9d1fa0e74d74: 1     # compress staged directory
 ```
 
 Now, when running an operation using the Bounty Hunter and the above configuration, the following attack chain is generated and executed:
