@@ -2,7 +2,7 @@ id: e1bb9388-1845-495d-b67b-ad61a31ff6cd
 name: bountyhunter
 description: |
   The Bounty Hunter Planner is a custom Caldera Planner developed and implemented by Fraunhofer FKIE.
-  The general idea behind the Bounty Hunter's implementation was to support initial access and privilege escalation methods to allow the emulation of complete, realistic attack chains.
+  The general idea behind Bounty Hunter's implementation was to support initial access and privilege escalation methods to allow the emulation of complete, realistic attack chains.
   This kind of behavior is not supported by any other Caldera planner, at the moment.
   Furthermore, it contributes a new attack behavior for Caldera adversaries.
   It decides which ability to use next using the future_rewards() function introduced in the look ahead planner.
@@ -12,7 +12,7 @@ description: |
   The planner's behavior can be controlled using various parameters.
   The 'final_abilities' is the most controlling parameter since it basically 'defines' which goal the adversary should pursue (most likely).
   
-  The initial access phase of the Bounty Hunter can be skipped by assigning the initial agent to the group `target`.
+  The initial access phase of Bounty Hunter can be skipped by assigning the initial agent to the group `target`.
   For more information, see the planner''s README.md in `caldera/plugins/bountyhunter/`.
 module: plugins.bountyhunter.app.planners.bounty_hunter
 ignore_enforcement_modules: []

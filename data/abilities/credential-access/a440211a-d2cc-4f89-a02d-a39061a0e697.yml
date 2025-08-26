@@ -19,7 +19,7 @@
     parsers:
     - module: plugins.bountyhunter.app.parsers.wmidump
       parserconfigs:
-      - source: target.winrm.password
+      - source: target.credentials.password
         edge: ''
         target: ''
         custom_parser_vals: {}
@@ -41,7 +41,7 @@
     parsers:
     - module: plugins.bountyhunter.app.parsers.wmidump
       parserconfigs:
-      - source: target.winrm.password
+      - source: target.credentials.password
         edge: ''
         target: ''
         custom_parser_vals: {}

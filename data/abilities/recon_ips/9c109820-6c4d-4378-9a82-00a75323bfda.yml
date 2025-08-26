@@ -5,8 +5,6 @@
   technique:
     attack_id: T1595
     name: Active Scanning
-  success_rate: 1
-  stealthiness: 1
   platforms:
     linux:
       sh:
