@@ -268,6 +268,7 @@ class LogicalPlanner:
 
             if chosen_link.ability.ability_id in self.final_abilities:
                 self.planning_svc.log.info("<BountyHunter> Bounty: Executed final ability. Ending Operation!")
+                await self._stop_operation(self.operation)
                 self.next_bucket = None
         else:
             self.planning_svc.log.info("<BountyHunter> Bounty: All executables links executed. Ending Operation!")
@@ -324,6 +325,8 @@ class LogicalPlanner:
                 break
 
         if self.ability_waiting_for_elevation.ability_id in self.final_abilities:
+            self.planning_svc.log.info("<BountyHunter> Bounty: Successfully executed final ability. Ending Operation!")
+            await self._stop_operation(self.operation)
             self.next_bucket = None
         else:
             self.agent_waiting_for_elevation = None
@@ -554,3 +557,11 @@ class LogicalPlanner:
                             self.default_reward + self.default_reward_update
                     else:
                         self.ability_rewards[following_ability.ability_id] += self.default_reward_update
+
+
+    async def _stop_operation(self, operation):
+        await operation.close({
+            "planning_svc": self.planning_svc,
+            "rest_svc": self.planning_svc.get_service("rest_svc"),
+            "event_svc": self.planning_svc.get_service("event_svc")
+        })
