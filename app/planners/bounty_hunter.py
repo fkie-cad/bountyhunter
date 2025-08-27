@@ -114,9 +114,6 @@ class LogicalPlanner:
         for agent in self.operation.agents:
             if not agent.host == self.start_agent.host:
                 self.planning_svc.log.info("<BountyHunter> Initial Access: Done! Got agent that is not on start host.")
-
-                await self.start_agent.kill()
-                self.operation.agents.remove(self.start_agent)
                 self.next_bucket = "bounty"
 
                 return
@@ -230,6 +227,8 @@ class LogicalPlanner:
 
         # Pick one ability per agent and add it to list of picked abilities
         for agent in self.operation.agents:
+            if agent == self.start_agent and not self.start_agent.group == "target":
+                continue
             executable_links = await self._get_executable_links(agent)
 
             if executable_links:
