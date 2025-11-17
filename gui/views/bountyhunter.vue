@@ -15,8 +15,6 @@ const $api = inject("$api");
 const route = useRoute();
 const scenarios = ref([])
 
-let isEditingScenario = ref(false);
-
 onMounted(async () => {
     await coreStore.getPlanners($api);
 
@@ -78,9 +76,7 @@ async function savePlanner(info) {
     // Configuration Area
     .card.block.p-4
         h3 Scenario
-        .content(v-if="!isEditingScenario" @click="isEditingScenario = true")
-            p.pointer {{ BountyHunterInfo.params.scenario }}
-        form(v-else)
+        .content
             .field
                 .control
                     .select.w-full
@@ -92,8 +88,6 @@ async function savePlanner(info) {
                                 :key="idx"
                                 :value="scenario"
                             ) {{ scenario }}
-            button.button.is-primary(@click="isEditingScenario = false") Done
-
 
     // Save Button
     button.button.is-primary(@click="savePlanner(BountyHunterInfo)")
