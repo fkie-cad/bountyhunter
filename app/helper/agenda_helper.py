@@ -40,8 +40,8 @@ class Requirement:
 
 
 class AgendaHelper:
-    def __init__(self, mapping_path="plugins/bountyhunter/conf/agenda_mapping.json"):
-        self._mapping_path = mapping_path
+    def __init__(self, scenario):
+        self._mapping_path = "plugins/bountyhunter/conf/" + scenario + "/agenda_mapping.json"
         self.agendas = []
         self.valid_agendas = []
 

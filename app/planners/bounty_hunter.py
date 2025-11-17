@@ -2,6 +2,7 @@ from numpy.random import choice, seed
 from yaml import safe_load
 
 from plugins.bountyhunter.app.helper.agenda_helper import AgendaHelper
+from plugins.bountyhunter.app.helper.yaml_helper import _load_config, _save_data
 
 
 class LogicalPlanner:
@@ -61,18 +62,14 @@ class LogicalPlanner:
         self.ability_waiting_for_elevation = None
 
         self.start_agent = None
-
-        self.agenda_helper = AgendaHelper()
-        self.agendas = None
-        self.picked_agenda = None
+        self.valid_agendas = None
 
         self.after_sleep_bucket = None
 
         self.planning_svc.log.info("<BountyHunter> Seed: {}".format(self.seed))
 
     def _init_parameters(self):
-        with open("plugins/bountyhunter/conf/" + self.scenario + "/scenario_params.yml") as f:
-            scenario_config = safe_load(f)
+        scenario_config = _load_config(self.scenario, "/scenario_params.yml", self.planning_svc.log)
 
         self.depth = scenario_config.get("depth", self.DEPTH)
         self.discount = scenario_config.get("discount", self.DISCOUNT)
@@ -90,6 +87,9 @@ class LogicalPlanner:
 
         self.weighted_random = scenario_config.get("weighted_random", False)
         self.seed = scenario_config.get("seed", self.SEED)
+
+        self.agenda_helper = AgendaHelper(self.scenario)
+        self.picked_agenda = None
 
     async def execute(self):
         self.ability_rewards = self.initial_ability_rewards.copy()
@@ -120,7 +120,7 @@ class LogicalPlanner:
 
         self.planning_svc.log.info("<BountyHunter> Initial Access: Begin! No agent was in operation was not on start host.")
 
-        if self.agendas:
+        if self.valid_agendas:
             self.planning_svc.log.info("<BountyHunter> Initial Access: Agendas already collected - try with next agenda.")
             self.next_bucket = "pick_agenda"
         else:
@@ -165,9 +165,9 @@ class LogicalPlanner:
             await self.operation.wait_for_links_completion(link_id)
 
             if link.facts:
-                self.agendas = await self.agenda_helper.get_valid_agendas(ability_links)
+                self.valid_agendas = await self.agenda_helper.get_valid_agendas(ability_links)
 
-                if self.agendas:
+                if self.valid_agendas:
                     self.next_bucket = "pick_agenda"
                     self.planning_svc.log.info("<BountyHunter> Recon Ports: Found valid agendas! Executing them.")
                     return
@@ -182,14 +182,14 @@ class LogicalPlanner:
     async def pick_agenda(self):
         self.planning_svc.log.info("<BountyHunter> Pick Agenda: Start!")
 
-        for agenda in self.agendas:
+        for agenda in self.valid_agendas:
             self.planning_svc.log.debug("<BountyHunter> Pick Agenda: Valid Agenda: {}".format(agenda.name))
 
         from random import shuffle
-        shuffle(self.agendas)
+        shuffle(self.valid_agendas)
 
         try:
-            self.picked_agenda = self.agendas.pop()
+            self.picked_agenda = self.valid_agendas.pop()
             self.planning_svc.log.info("<BountyHunter> Pick Agenda: Picked Agenda: {}".format(agenda.name))
 
             for ability_id in self.picked_agenda.ability_ids:
@@ -390,7 +390,7 @@ class LogicalPlanner:
         else:
             ability_reward_tuples.sort(key=lambda t: t[1], reverse=True)
 
-        for art in ability_reward_tuples:
+        for art in ability_reward_tuples[:10]:
             self.planning_svc.log.info("<BountyHunter> Shuffled/Sorted Ability Rewards: {}".format(art))
 
         for ability_reward_tuple in ability_reward_tuples:
