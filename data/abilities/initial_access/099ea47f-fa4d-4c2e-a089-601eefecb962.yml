@@ -27,7 +27,7 @@
       target: host.ssh.user
   additional_info: {}
   executors:
-  - timeout: 60
+  - timeout: 120
     cleanup: []
     payloads: []
     uploads: []

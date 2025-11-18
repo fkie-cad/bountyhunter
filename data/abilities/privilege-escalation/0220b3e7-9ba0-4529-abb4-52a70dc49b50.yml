@@ -11,6 +11,7 @@
           '
         payloads:
         - bypassUAC.ps1
+        timeout: 120
   repeatable: false
   requirements: []
   tactic: privilege-escalation
