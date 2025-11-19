@@ -1,8 +1,9 @@
 # Coverage of additional tactics
 
-Adversary emulation should cover a wide range of TTPs (Tactics, Techniques, and Procedures).
+Adversary emulation should cover a wide range of TTPs (Tactics, Techniques, and Procedures) to allow for comprehensive assessments.
 We designed Bounty Hunter as a plugin for Caldera to utilize its extensive library of techniques, which includes over 1,700 abilities covering all post-compromise tactics.
 Below, we explain how Bounty Hunter enhances Caldera's capabilities with two dedicated planning components for (pre-)compromise and coherent privilege escalation techniques, allowing for the emulation of adversaries across pre-, initial, and post-compromise tactics.
+For a practical example, we refer to the example scenario _Initial Access and Privilege Escalation_.
 
 ## (Pre-)compromise
 

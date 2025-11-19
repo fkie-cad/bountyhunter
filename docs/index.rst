@@ -15,7 +15,7 @@ Bounty Hunter extends Caldera's capabilities by offering support for both in a f
 This enables it to emulate complete cyberattack chains.
 
 **Adaptable adversarial attributes.**
-Bounty Hunter allows the emulation of adversaries with desired attributes, e.g., stealthy vs. easy-to-detect.
+Bounty Hunter allows the emulation of adversaries with desired attributes, e.g., stealthy vs. easy-to-detect or varying skill levels (success of employed actions).
 To do so, it employs properties of abilities and custom parameters during its future reward calculation.
 
 **Weighted-random attack behavior.**

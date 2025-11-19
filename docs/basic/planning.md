@@ -12,7 +12,7 @@ Two abilities are linked when one ability `a2` requires a fact that is gathered 
 In such a case, we also call `a2` a _following_ ability of `a1`.
 
 Consider the example below.
-Here, the ability `Compress Sensitive Directory` follows `Find Sensitive Directory` because it requires the fact `dir.path` which is gathered by the latter.
+Here, the ability _Compress Sensitive Directory_ follows _Find Sensitive Directory_ because it requires the fact `dir.path` which is gathered by the latter.
 
 [![](../../assets/linked-steps.png)](../../assets/linked-steps.png)
 
@@ -21,11 +21,10 @@ To keep user input simple, Bounty Hunter focuses on defining goals.
 Bounty Hunter utilizes links between abilities and their reward values to predict future rewards for all abilities.
 To achieve the defined goal, it iteratively chooses the ability with the highest future reward without unmet requirements.
 Rewards are assigned in two ways: (1) abilities defined as goals get a high reward automatically, and (2) users can set custom rewards for specific abilities.
-Bounty Hunter uses a discount model to calculate future rewards for attack abilities, adding the ability’s reward to the best discounted rewards of the following abilities.
+Bounty Hunter uses a finite-horizon discount model to calculate future rewards for abilities, adding the ability’s reward to the best discounted rewards of the following abilities.
 The discount factor `g` reduces the importance of rewards further down the sequence, with a set maximum depth `d` for consideration.
 
 The future reward calculation is performed in the same way as in Caldera's Look-Ahead Planner.
-
 The formula for the future reward calculation is: `f(a,d) = r(a) × g^d + max(f(a.following, d+1))`, with the parameters:
 - `r(a)`: reward of ability `a`
 - `g`: discount factor
@@ -33,8 +32,8 @@ The formula for the future reward calculation is: `f(a,d) = r(a) × g^d + max(f(
 - `a.following`: following abilities of `a`
 
 Consider the example above.
-`Exfiltrate Sensitive Directory` has a high reward of 1000 as it is the configured goal ability.
-Accordingly, `Compress Sensitive Directory` gets a reward of 401 and `Find Sensitive Directory` a reward of 161.
+_Exfiltrate Sensitive Directory_ has a high reward of 1000 as it is the configured goal ability.
+Accordingly, _Compress Sensitive Directory_ gets a reward of 401 and _Find Sensitive Directory_ a reward of 161.
 
 ## Locking and unlocking abilities
 
@@ -42,7 +41,7 @@ When relying solely on conditions and reward-driven decision making, unrealistic
 For example, when given the goal to exfiltrate sensitive files, Bounty Hunter's Look Ahead Planner might strictly execute abilities to gather information needed for its goal, resulting in an empty directory being exfiltrated.
 To avoid this, some abilities need to be executed in a specific order, even if they aren’t logically linked via conditions.
 To ensure that certain abilities aren’t executed prematurely, Bounty Hunter allows users to define an ability as locked, which prevents its execution until it is unlocked by successfully executing another specified ability.
-In the example below, we defined the ability `Compress Staging Directory` as locked, and it will automatically unlock after executing `Find and Stage Sensitive Files`, ensuring that the staging directory isn’t empty when compressing and exfiltrating it.
+In the example below, we defined the ability _Compress Staging Directory_ as locked, and it will automatically unlock after executing _Find and Stage Sensitive Files_, ensuring that the staging directory isn’t empty when compressing and exfiltrating it.
 
 ## Updating reward values
 Real-life adversaries often carry out attacks where not all of their abilities are aimed at the same goal.
@@ -56,11 +55,11 @@ To help emulate adversaries progressing through the attack lifecycle, Bounty Hun
 
 ## Example
 Consider the example below.
-The ability `Exfiltrate Staging Directory` is defined as goal and `Compress Staging Directory` as locked.
-Since all abilities with a higher future reward value have unfulfilled pre-conditions, Bounty Hunter first executes `Create Staging Directory`.
-After successfully executing this ability, it automatically increases the reward values of all following abilities by a default of 100, thus increasing `Compress Staging Directory`’s future reward to a total of 501 and `Find and Stage Sensitive Files`’s future reward to 101.
-Since the ability `Compress Staging Directory` is still locked, it decides to execute `Find and Stage Sensitive Files` next, driven by its increased reward value.
-Upon successful execution, the ability `Compress Staging Directory` is unlocked and subsequently executed.
+The ability _Exfiltrate Staging Directory_ is defined as goal and _Compress Staging Directory_ as locked.
+Since all abilities with a higher future reward value have unfulfilled pre-conditions, Bounty Hunter first executes _Create Staging Directory_.
+After successfully executing this ability, it automatically increases the reward values of all following abilities by a default of 100, thus increasing _Compress Staging Directory_’s future reward to a total of 501 and _Find and Stage Sensitive Files_’s future reward to 101.
+Since the ability _Compress Staging Directory_ is still locked, Bounty Hunter plans to execute _Find and Stage Sensitive Files_ next, driven by its increased reward value.
+Upon successful execution, the ability _Compress Staging Directory_ is unlocked and subsequently executed.
 At this point, the goal ability has its pre-condition fulfilled and Bounty Hunter can execute it, concluding the assessment.
 
 [![](../../assets/locked-steps.png)](../../assets/locked-steps.png)
