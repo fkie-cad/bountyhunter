@@ -9,7 +9,8 @@ description: |
   (2) Perform initial access, privilege escalation and execute ability that needs elevated privileges
   (3) Find, stage and exfiltrate sensitive files to demonstrate locked abilities
 atomic_ordering:
-  - 9c109820-6c4d-4378-9a82-00a75323bfda        # Nmap host scan (Scenario 1+2)
+  - 9c109820-6c4d-4378-9a82-00a75323bfda        # Nmap host scan (T5) (Scenario 1+2)
+  - cb53b600-783b-4cb3-92de-c58a7f563ce8        # Nmap host scan (T2) (Scenario 1+2)
   - 8fcd3afb-75ca-40da-8bff-432abfb00fbb        # Nmap port scan (Scenario 1+2)
   - bd527b63-9f9e-46e0-9816-b8434d2b8989        # Current User (Scenario 1)
   - ce6628bc-c1e2-456b-91e7-da5b8bcd4005        # Abuse bash can be executed with sudo privileges (Scenario 2)
