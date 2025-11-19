@@ -1,7 +1,7 @@
 from numpy.random import choice, seed
-from yaml import safe_load
 
 from plugins.bountyhunter.app.helper.agenda_helper import AgendaHelper
+from plugins.bountyhunter.app.helper.yaml_helper import _load_config, _save_data
 
 
 class LogicalPlanner:
@@ -61,18 +61,14 @@ class LogicalPlanner:
         self.ability_waiting_for_elevation = None
 
         self.start_agent = None
-
-        self.agenda_helper = AgendaHelper()
-        self.agendas = None
-        self.picked_agenda = None
+        self.valid_agendas = None
 
         self.after_sleep_bucket = None
 
         self.planning_svc.log.info("<BountyHunter> Seed: {}".format(self.seed))
 
     def _init_parameters(self):
-        with open("plugins/bountyhunter/conf/" + self.scenario + "/scenario_params.yml") as f:
-            scenario_config = safe_load(f)
+        scenario_config = _load_config(self.scenario, "/scenario_params.yml", self.planning_svc.log)
 
         self.depth = scenario_config.get("depth", self.DEPTH)
         self.discount = scenario_config.get("discount", self.DISCOUNT)
@@ -90,6 +86,23 @@ class LogicalPlanner:
 
         self.weighted_random = scenario_config.get("weighted_random", False)
         self.seed = scenario_config.get("seed", self.SEED)
+
+        self.agenda_helper = AgendaHelper(self.scenario)
+        self.picked_agenda = None
+
+        self.success_weight = scenario_config.get("success_weight", 0)
+        self.success_factors = _load_config(self.scenario, "/success_data.yml", self.planning_svc.log, self.success_weight)
+        self.default_success_factor = scenario_config.get("default_success_factor", 1)
+        self.default_success_condition = scenario_config.get("default_success_condition", "no-error")
+
+        self.success_alpha = scenario_config.get("success_alpha", 0.3)
+        self.success_max_value = scenario_config.get("success_max_value", 2)
+        self.success_min_value = scenario_config.get("success_min_value", 0.5)
+        self.update_success_factors = scenario_config.get("update_success_factors", False)
+
+        self.detectability_weight = scenario_config.get("detectability_weight", 0)
+        self.detectability_factors = _load_config(self.scenario, "/detectability_data.yml", self.planning_svc.log, self.detectability_weight)
+        self.default_detectability_factor = scenario_config.get("default_detectability_factor", 1)
 
     async def execute(self):
         self.ability_rewards = self.initial_ability_rewards.copy()
@@ -114,86 +127,109 @@ class LogicalPlanner:
         for agent in self.operation.agents:
             if not agent.host == self.start_agent.host:
                 self.planning_svc.log.info("<BountyHunter> Initial Access: Done! Got agent that is not on start host.")
-
-                await self.start_agent.kill()
-                self.operation.agents.remove(self.start_agent)
                 self.next_bucket = "bounty"
 
                 return
 
         self.planning_svc.log.info("<BountyHunter> Initial Access: Begin! No agent was in operation was not on start host.")
 
-        if self.agendas:
+        if self.valid_agendas:
             self.planning_svc.log.info("<BountyHunter> Initial Access: Agendas already collected - try with next agenda.")
             self.next_bucket = "pick_agenda"
         else:
             self.planning_svc.log.info("<BountyHunter> Initial Access: No agendas collected yet - enter reconnaissance!")
-            self.next_bucket = "recon_ips"
+            self.next_bucket = "recon_ports"
 
     async def recon_ips(self):
         self.planning_svc.log.info("<BountyHunter> Recon IPs: Start Host Recon!")
-        ability_links = await self.planning_svc.get_links(self.operation, agent=self.start_agent, buckets=["recon_ips"])
 
-        seed(self.seed)
-        shuffled_links = choice(
-            ability_links, len(ability_links), replace=False
-        ).tolist()
+        try:
+            shuffled_tuples = await self._get_link_reward_tuples(self.start_agent, ["recon_ips"])
+        except ValueError:
+            self.planning_svc.log.warning("<BountyHunter> Recon IPs: No more recon ips abilities available. Operation done.")
+            self.next_bucket = None
+            return
 
-        for link in shuffled_links:
+        for link in [item[0] for item in shuffled_tuples]:
             link_id = [await self.operation.apply(link)]
             await self.operation.wait_for_links_completion(link_id)
 
+            if self.success_weight and self.update_success_factors:
+                await self._update_ability_success_factor(link.ability, link.facts)
+
             if link.facts:
-                self.planning_svc.log.info("<BountyHunter> Recon IPs: Found Hosts. Continue with Port Discovery.")
+                self.planning_svc.log.info("<BountyHunter> Recon IPs: Ability '{}' found hosts. Continue with port discovery.".format(link.ability.name))
                 self.next_bucket = "recon_ports"
                 return
             else:
-                self.planning_svc.log.info("<BountyHunter> Recon IPs: Ability found no hosts. Continue..")
+                self.planning_svc.log.info("<BountyHunter> Recon IPs: Ability '{}' found no hosts. Continue with next ability.".format(link.ability.name))
 
-        self.planning_svc.log.warning("<BountyHunter> Recon IPs: No hosts found.. Operation done.")
+        self.planning_svc.log.warning("<BountyHunter> Recon IPs: No hosts were found. Operation done.")
         self.next_bucket = "recon_ports"
 
     async def recon_ports(self):
         self.planning_svc.log.info("<BountyHunter> Recon Ports: Start Port Recon!")
+        try:
+            shuffled_tuples = await self._get_link_reward_tuples(self.start_agent, ["recon_ports"])
+        except ValueError:
+            self.planning_svc.log.info("<BountyHunter> Recon Ports: Got no recon ports links - start recon ips!")
+            self.next_bucket = "recon_ips"
+            return
 
-        ability_links = await self.planning_svc.get_links(self.operation, agent=self.start_agent, buckets=["recon_ports"])
+        if not shuffled_tuples:
+            self.planning_svc.log.info("<BountyHunter> Recon Ports: Got no recon ports links - start recon ips!")
+            self.next_bucket = "recon_ips"
+            return
 
-        seed(self.seed)
-        shuffled_links = choice(
-            ability_links, len(ability_links), replace=False
-        ).tolist()
-
-        for link in shuffled_links:
+        for link in [item[0] for item in shuffled_tuples]:
             link_id = [await self.operation.apply(link)]
             await self.operation.wait_for_links_completion(link_id)
 
-            if link.facts:
-                self.agendas = await self.agenda_helper.get_valid_agendas(ability_links)
+            if self.success_weight and self.update_success_factors:
+                await self._update_ability_success_factor(link.ability, link.facts)
 
-                if self.agendas:
+            if link.facts:
+                self.valid_agendas = await self.agenda_helper.get_valid_agendas([item[0] for item in shuffled_tuples])
+
+                if self.valid_agendas:
                     self.next_bucket = "pick_agenda"
                     self.planning_svc.log.info("<BountyHunter> Recon Ports: Found valid agendas! Executing them.")
                     return
                 else:
                     self.planning_svc.log.info("<BountyHunter> Recon Ports: No valid agendas found. Continue..")
             else:
-                self.planning_svc.log.info("<BountyHunter> Recon Ports: Ability was not successful. Continue..")
+                self.planning_svc.log.info("<BountyHunter> Recon Ports: Ability '{}' did not gather any info. Continue with next recon_ports ability.".format(link.ability.name))
 
         self.planning_svc.log.warning("<BountyHunter> Recon Ports: No port info or valid agenda could be gathered.. Operation done.")
         self.next_bucket = None
 
     async def pick_agenda(self):
         self.planning_svc.log.info("<BountyHunter> Pick Agenda: Start!")
+        agenda_reward_tuples = []
 
-        for agenda in self.agendas:
-            self.planning_svc.log.debug("<BountyHunter> Pick Agenda: Valid Agenda: {}".format(agenda.name))
+        for agenda in self.valid_agendas:
+            reward = await self._apply_factor(agenda.reward, agenda.detectability, self.detectability_weight)
+            reward = await self._apply_factor(reward, agenda.success_rate, self.success_weight)
+            agenda_reward_tuples.append((agenda, reward))
+            self.planning_svc.log.info("<BountyHunter> Pick Agenda: Valid agenda '{}' with reward '{}'.".format(agenda.name, reward))
 
-        from random import shuffle
-        shuffle(self.agendas)
+        if self.weighted_random:
+            agenda_reward_tuples = await self._shuffle_weighted_randomly(agenda_reward_tuples)
+        else:
+            agenda_reward_tuples.sort(key=lambda t: t[1], reverse=True)
+
+        for t in agenda_reward_tuples:
+            self.planning_svc.log.info(
+                "<BountyHunter> Pick Agenda: shuffled agendas '{}' with reward '{}'.".format(t[0].name, t[1]))
+
+        self.valid_agendas = [item[0] for item in agenda_reward_tuples]
+
+        for a in self.valid_agendas:
+            self.planning_svc.log.info("<BountyHunter> Pick Agenda: shuffled valid agendas '{}'.".format(a.name))
 
         try:
-            self.picked_agenda = self.agendas.pop()
-            self.planning_svc.log.info("<BountyHunter> Pick Agenda: Picked Agenda: {}".format(agenda.name))
+            self.picked_agenda = self.valid_agendas.pop(0)
+            self.planning_svc.log.info("<BountyHunter> Pick Agenda: Picked Agenda: {}".format(self.picked_agenda.name))
 
             for ability_id in self.picked_agenda.ability_ids:
                 self.planning_svc.log.debug("<BountyHunter> Pick Agenda: Adding ability to operation: {}".format(ability_id))
@@ -222,6 +258,9 @@ class LogicalPlanner:
             self.next_bucket = "sleep"
             self.after_sleep_bucket = "initial_access"
 
+            for ability_id in self.picked_agenda.ability_ids:
+                await self._remove_ability_from_operation(ability_id, "execute_agenda")
+
     async def bounty(self):
         self.planning_svc.log.info("<BountyHunter> Bounty: Start!")
         picked_links_with_reward_per_agent = []
@@ -230,6 +269,8 @@ class LogicalPlanner:
 
         # Pick one ability per agent and add it to list of picked abilities
         for agent in self.operation.agents:
+            if agent == self.start_agent and not self.start_agent.group == "target":
+                continue
             executable_links = await self._get_executable_links(agent)
 
             if executable_links:
@@ -264,11 +305,16 @@ class LogicalPlanner:
 
             link_id = await self.operation.apply(chosen_link)
             await self.operation.wait_for_links_completion([link_id])
+            ability_success = await self._ability_was_successful(chosen_link)
 
-            await self._update_ability_rewards(chosen_link.ability, chosen_agent)
+            if ability_success:
+                await self._update_ability_rewards(chosen_link.ability, chosen_agent)
+            if self.success_weight and self.update_success_factors:
+                await self._update_ability_success_factor(chosen_link.ability, ability_success)
 
-            if chosen_link.ability.ability_id in self.final_abilities:
-                self.planning_svc.log.info("<BountyHunter> Bounty: Executed final ability. Ending Operation!")
+            if chosen_link.ability.ability_id in self.final_abilities and ability_success:
+                self.planning_svc.log.info("<BountyHunter> Bounty: Successfully executed final ability. Ending Operation!")
+                await self._stop_operation(self.operation)
                 self.next_bucket = None
         else:
             self.planning_svc.log.info("<BountyHunter> Bounty: All executables links executed. Ending Operation!")
@@ -277,6 +323,7 @@ class LogicalPlanner:
     async def elevate(self):
         self.planning_svc.log.info("<BountyHunter> Elevate: Start!")
 
+        # The following for-loop checks if there is an elevated agent on the current host
         for agent in self.operation.agents:
             if agent.privilege == "Elevated" and agent.host == self.host_waiting_for_elevation:
                 self.planning_svc.log.info(
@@ -286,21 +333,15 @@ class LogicalPlanner:
                 self.next_bucket = "execute_elevated"
                 return
 
-        privilege_escalation_links = await self.planning_svc.get_links(
-            self.operation, agent=self.agent_waiting_for_elevation, buckets=["privilege-escalation"]
-        )
+        link_reward_tuples = await self._get_link_reward_tuples(self.agent_waiting_for_elevation, ["privilege-escalation"])
 
-        if not privilege_escalation_links:
+        if not link_reward_tuples:
+            self.planning_svc.log.info("<BountyHunter> Elevate: Got no priv.esc. links! Returning to bounty bucket.")
             self.next_bucket = "bounty"
             return
 
-        for link in privilege_escalation_links:
-            self.planning_svc.log.debug("<BountyHunter> Elevate: Got Priv.Esc. Link with ability {}!".format(link.ability.name))
-
-        seed(self.seed)
-        chosen_link = choice(privilege_escalation_links, 1)[0]
-        self.planning_svc.log.debug("<BountyHunter> Elevate: Execute Priv.Esc. Ability {}!".format(chosen_link.ability.name))
-
+        chosen_link = link_reward_tuples[0][0]
+        self.planning_svc.log.info("<BountyHunter> Elevate: Execute Priv.Esc. Ability {}!".format(chosen_link.ability.name))
         link_ids = [await self.operation.apply(chosen_link)]
         await self.operation.wait_for_links_completion(link_ids)
 
@@ -325,6 +366,8 @@ class LogicalPlanner:
                 break
 
         if self.ability_waiting_for_elevation.ability_id in self.final_abilities:
+            self.planning_svc.log.info("<BountyHunter> Bounty: Successfully executed final ability. Ending Operation!")
+            await self._stop_operation(self.operation)
             self.next_bucket = None
         else:
             self.agent_waiting_for_elevation = None
@@ -344,6 +387,66 @@ class LogicalPlanner:
         await self.operation.wait_for_links_completion(link_id)
 
         self.next_bucket = self.after_sleep_bucket
+
+    async def _get_link_reward_tuples(self, agent, buckets):
+        """Get list of (link, reward) tuples where eah tuple consists of an ability link and its bais reward.
+        Basic means, no future rewards are calculated, but only the defined rewards are used with applied factors (detectability, success).
+        This method is used for recon_ips, recon_ports, and privilege escalation.
+
+        :param agent: The current agent
+        :param buckets: The respective bucket (tactic)
+        :return: list of tuples (link, reward)
+        """
+
+        links = await self.planning_svc.get_links(self.operation, agent=agent, buckets=buckets)
+        link_reward_tuples = []
+
+        for link in links:
+            link_ability_reward = self.ability_rewards.get(link.ability.ability_id, self.default_reward)
+            link_ability_reward = await self._apply_success_factor(link_ability_reward, link.ability.ability_id)
+            link_ability_reward = await self._apply_detectability_factor(link_ability_reward, link.ability.ability_id)
+
+            link_reward_tuples.append((link, link_ability_reward))
+
+        if self.weighted_random:
+            link_reward_tuples = await self._shuffle_weighted_randomly(link_reward_tuples)
+        else:
+            link_reward_tuples.sort(key=lambda t: t[1], reverse=True)
+
+        for l in link_reward_tuples:
+            self.planning_svc.log.info("<BountyHunter> Shuffled/Sorted Ability Rewards: {}:{}".format(l[0].ability.name, l[1]))
+
+        return link_reward_tuples
+
+    async def _ability_was_successful(self, link):
+        success_condition = link.ability.additional_info.get("success_condition", self.default_success_condition)
+        self.planning_svc.log.info("<success-factor> Ability Success Condition: {}".format(success_condition))
+
+        if success_condition in ["no-error", "no_error", "no error"]:
+            self.planning_svc.log.info("<success-factor> Checking no-error. Link Status: {}. Result: {}.".format(link.status, link.status == 0))
+            return link.status == 0
+        elif success_condition in ["facts", "facts_collected", "facts-collected"]:
+            self.planning_svc.log.info("<success-factor> Checking facts. Collected Facts: {}. Count: {}.".format(link.facts, len(link.facts)))
+            return len(link.facts)
+        else:
+            self.planning_svc.log.info("<success-factor> Warning! Success Condition not recognized! Counting as no success: {}.".format(success_condition))
+            return False
+
+    async def _update_ability_success_factor(self, ability, success):
+        current_success_factor = self.success_factors.get(ability.ability_id, self.default_success_factor)
+        self.planning_svc.log.info("<success-factor> Current Success Factor: {}.".format(current_success_factor))
+
+        if success:
+            self.planning_svc.log.info("<success-factor> Updating for Success Case!")
+            smoothed_success_factor = round(self.success_alpha * self.success_max_value + (1 - self.success_alpha) * current_success_factor, 2)
+        else:
+            self.planning_svc.log.info("<success-factor> Updating for Failure Case!")
+            smoothed_success_factor = round(self.success_alpha * self.success_min_value + (1 - self.success_alpha) * current_success_factor, 2)
+
+        self.success_factors[ability.ability_id] = smoothed_success_factor
+        self.planning_svc.log.info("<success-factor> Updated Success Factor: {}.".format(self.success_factors[ability.ability_id]))
+
+        _save_data("plugins/bountyhunter/conf/" + self.scenario + "/success_data.yml", self.success_factors)
 
     async def _get_elevated_agent(self, host):
         for agent in self.operation.agents:
@@ -377,24 +480,38 @@ class LogicalPlanner:
             return executable_links
 
     async def _pick_next_ability_link(self, agent, executable_links):
-        supported_abilities = await self._get_supported_abilities(agent)
-        ability_reward_tuples = await self._get_ability_rewards(agent, supported_abilities)
+        link_reward_tuples = await self._get_link_future_reward_tuples(agent, executable_links)
 
-        for art in ability_reward_tuples:
-            self.planning_svc.log.debug("<BountyHunter> Ability Rewards: {}".format(art))
+        for lrt in link_reward_tuples:
+            self.planning_svc.log.debug("<BountyHunter> Ability Rewards: {}:{}".format(lrt[0].ability.name, lrt[1]))
 
         if self.weighted_random:
-            ability_reward_tuples = await self._shuffle_weighted_randomly(ability_reward_tuples)
+            link_reward_tuples = await self._shuffle_weighted_randomly(link_reward_tuples)
         else:
-            ability_reward_tuples.sort(key=lambda t: t[1], reverse=True)
+            link_reward_tuples.sort(key=lambda t: t[1], reverse=True)
 
-        for art in ability_reward_tuples:
-            self.planning_svc.log.info("<BountyHunter> Shuffled/Sorted Ability Rewards: {}".format(art))
+        for lrt in link_reward_tuples[:10]:
+            self.planning_svc.log.info("<BountyHunter> Shuffled/Sorted Ability Rewards: {}:{}".format(lrt[0].ability.name, lrt[1]))
 
-        for ability_reward_tuple in ability_reward_tuples:
-            for link in executable_links:
-                if link.ability.ability_id == ability_reward_tuple[0]:
-                    return link, ability_reward_tuple[1]
+        return link_reward_tuples[0]
+
+    async def _get_link_future_reward_tuples(self, agent, links):
+        """Get list of ability reward tuples where each tuple consists of an ability ID and its future reward
+
+        :param agent:
+        :param abilities:
+        :return: list of tuples (ability id, reward)
+        """
+
+        supported_abilities = await self._get_supported_abilities(agent)
+
+        link_rewards = []
+
+        for link in links:
+            if link.ability.ability_id not in self.locked_abilities:
+                link_rewards.append((link, await self._future_reward(agent, link.ability, supported_abilities, 0), ))
+
+        return link_rewards
 
     async def _get_supported_abilities(self, agent):
         """Return list of abilities that are supported by the given agent, i.e. which abilities are
@@ -419,28 +536,12 @@ class LogicalPlanner:
                 supported_abilities.append(ability)
         return supported_abilities
 
-    async def _get_ability_rewards(self, agent, abilities):
-        """Get list of ability reward tuples where each tuple consists of an ability ID and its future reward
-
-        :param agent:
-        :param abilities:
-        :return: list of tuples (ability id, reward)
-        """
-
-        ability_rewards = []
-
-        for ability in abilities:
-            if ability.ability_id not in self.locked_abilities:
-                ability_rewards.append((ability.ability_id, await self._future_reward(agent, ability, abilities, 0), ))
-
-        return ability_rewards
-
     async def _future_reward(self, agent, current_ability, abilities, current_depth):
         """Calculate future reward for current ability
 
         :param agent:
         :param current_ability:
-        :param abilities:
+        :param abilities: all abilities that can potentially be executed by the given agent, including those that require higher privileges and with unmet requirements
         :param current_depth:
         :return: reward for current ability
         """
@@ -451,51 +552,96 @@ class LogicalPlanner:
         abilities = set(abilities) - set([current_ability])
         future_rewards = [0]
 
-        following_abilities = await self._get_following_abilities(agent, current_ability, abilities)
+        following_abilities = await self._get_following_abilities(agent, current_ability, abilities, True)
 
         for following_ability in following_abilities:
             future_rewards.append(
                 await self._future_reward(agent, following_ability, abilities, current_depth+1)
             )
 
-        reward = round(
-            self.ability_rewards.get(current_ability.ability_id, self.default_reward)
-            * (self.discount**current_depth)
-            + max(future_rewards),
-            3,
-        )
+        current_ability_reward = self.ability_rewards.get(current_ability.ability_id, self.default_reward)
+        current_discount = self.discount**current_depth
+
+        reward = round(((current_ability_reward) * current_discount + max(future_rewards)), 3)
+        reward = await self._apply_success_factor(reward, current_ability.ability_id)
+        reward = await self._apply_detectability_factor(reward, current_ability.ability_id)
 
         return reward
 
+    async def _apply_success_factor(self, reward, ability_id):
+        return await self._apply_factor(reward, self.success_factors.get(ability_id, self.default_success_factor), self.success_weight)
+
+    async def _apply_detectability_factor(self, reward, ability_id):
+        return await self._apply_factor(reward, self.detectability_factors.get(ability_id, self.default_detectability_factor), self.detectability_weight)
+
     @staticmethod
-    async def _get_following_abilities(agent, current_ability, abilities):
+    async def _apply_factor(reward, factor, weight):
+        return reward * factor ** weight
+
+    async def _get_following_abilities(self, agent, current_ability, supported_abilities, skip_collected=False):
         """Get abilities that follow the current ability, i.e. abilities that use facts that are generated by
         the current ability
 
         :param agent:
         :param current_ability:
-        :param abilities:
+        :param supported_abilities:
+        :param skip_collected: Configure if following abilities should be included when the needed facts were already collected.
+          E.g., when calculating future reward values, we do not want to add the reward of a following ability if we already collected the necessary facts.
         :return: list of abilities that follow the given ability
         """
 
         current_executor = await agent.get_preferred_executor(current_ability)
-        facts = [
+        facts_gathered_by_current_ability = await self._get_facts_gathered_by_executor(current_executor)
+        following_abilities = []
+
+        for supported_ability in supported_abilities:
+            # if ability does not use facts collected by current ability it does not follow it -> continue
+            executor_command = (await agent.get_preferred_executor(supported_ability)).command
+            if not await self.ability_command_uses_fact(executor_command, facts_gathered_by_current_ability):
+                continue
+            # if skip_collected and current ability does not collect a single new fact that is needed by ability,
+            #   we do not want to increase its reward based on following abilities
+            # this should prevent high rewards and thus the execution of multiple abilities that collect the same facts
+            else:
+                if skip_collected and not (await self._ability_collects_new_facts_needed_by_ability(executor_command, facts_gathered_by_current_ability)):
+                    continue
+                else:
+                    following_abilities.append(supported_ability)
+
+        return following_abilities
+
+    @staticmethod
+    async def ability_command_uses_fact(executor_command, facts):
+        return executor_command and any(fact in executor_command for fact in facts)
+
+    @staticmethod
+    async def _get_facts_gathered_by_executor(executor):
+        facts_gathered_by_ability = [
             fact
-            for parser in current_executor.parsers
+            for parser in executor.parsers
             for cfg in parser.parserconfigs
             for fact in [cfg.source, cfg.target]
             if fact is not None and fact != ""
         ]
 
-        following_abilities = []
+        return facts_gathered_by_ability
 
-        for ability in abilities:
-            executor = await agent.get_preferred_executor(ability)
+    async def _ability_collects_new_facts_needed_by_ability(self, following_executor_command, facts_gathered_by_current_ability):
+        already_collected_fact_names = await self._get_all_collected_fact_names()
 
-            if executor.command and any(fact in executor.command for fact in facts):
-                following_abilities.append(ability)
+        for fact in facts_gathered_by_current_ability:
+            if fact not in already_collected_fact_names:
+                if await self.ability_command_uses_fact(following_executor_command, [fact]):
+                    return True
 
-        return following_abilities
+    async def _get_all_collected_fact_names(self):
+        all_facts = await self.operation.all_facts()
+        all_fact_names = []
+
+        for f in all_facts:
+            all_fact_names.append(f.name)
+
+        return all_fact_names
 
     async def _shuffle_weighted_randomly(self, list_of_tuples):
         """Shuffle the given list of tuples weighted randomly where the first tuple element is the value and the
@@ -508,7 +654,8 @@ class LogicalPlanner:
         shuffled_list = []
 
         values = [element[0] for element in list_of_tuples]
-        weights = [element[1] for element in list_of_tuples]
+        # this prevents values from being zero or negative, which causes an error for the choice() function
+        weights = [max(element[1], 0.1) for element in list_of_tuples]
         # normalizing is necessary for np.random.choice function
         normalized_weights = [float(weight)/sum(weights) for weight in weights]
 
@@ -555,3 +702,11 @@ class LogicalPlanner:
                             self.default_reward + self.default_reward_update
                     else:
                         self.ability_rewards[following_ability.ability_id] += self.default_reward_update
+
+
+    async def _stop_operation(self, operation):
+        await operation.close({
+            "planning_svc": self.planning_svc,
+            "rest_svc": self.planning_svc.get_service("rest_svc"),
+            "event_svc": self.planning_svc.get_service("event_svc")
+        })

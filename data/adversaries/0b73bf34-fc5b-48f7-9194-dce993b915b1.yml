@@ -6,6 +6,7 @@ description: |
   Adversary Profile for Bounty Hunter initial access testing against Windows and Linux Targets.
   Find current user name after successful initial access.
 atomic_ordering:
-  - 9c109820-6c4d-4378-9a82-00a75323bfda        # Nmap host scan
+  - 9c109820-6c4d-4378-9a82-00a75323bfda        # Nmap host scan (T5)
+  - cb53b600-783b-4cb3-92de-c58a7f563ce8        # Nmap host scan (T2)
   - 8fcd3afb-75ca-40da-8bff-432abfb00fbb        # Nmap port scan
   - bd527b63-9f9e-46e0-9816-b8434d2b8989        # Current User

@@ -1,22 +1,43 @@
-- id: 8fcd3afb-75ca-40da-8bff-432abfb00fbb
+- tactic: recon_ports
+  technique_name: Network Service Discovery
+  technique_id: T1046
   name: Nmap port scan
   description: Run Nmap port scan with service/version detection against remote machine.
-  tactic: recon_ports
-  technique:
-    attack_id: T1046
-    name: Network Service Discovery
-  platforms:
-    linux:
-      sh:
-        command: 'nmap -sV -O #{bountyhunter.network.ip}'
-        parsers:
-          plugins.bountyhunter.app.parsers.nmap_port_scan:
-          - source: bountyhunter.network.ip
-            edge: has_port
-            target: host.ports.open
-          - source: bountyhunter.network.ip
-            edge: has_os
-            target: host.os
+  executors:
+  - name: sh
+    platform: linux
+    command: 'nmap -sV -O -T5 #{bountyhunter.network.ip}'
+    code: null
+    language: null
+    build_target: null
+    payloads: []
+    uploads: []
+    timeout: 180
+    parsers:
+    - module: plugins.bountyhunter.app.parsers.nmap_port_scan
+      parserconfigs:
+      - source: bountyhunter.network.ip
+        edge: has_port
+        target: host.ports.open
+        custom_parser_vals: {}
+      - source: bountyhunter.network.ip
+        edge: has_os
+        target: host.os
+        custom_parser_vals: {}
+    cleanup: []
+    variations: []
+    additional_info: {}
   requirements:
-  - plugins.stockpile.app.requirements.paw_provenance:
+  - module: plugins.stockpile.app.requirements.paw_provenance
+    relationship_match:
     - source: bountyhunter.network.ip
+  privilege: ''
+  repeatable: false
+  buckets:
+  - recon_ports
+  additional_info: {}
+  access: {}
+  singleton: false
+  plugin: bountyhunter
+  delete_payload: true
+  id: 8fcd3afb-75ca-40da-8bff-432abfb00fbb
