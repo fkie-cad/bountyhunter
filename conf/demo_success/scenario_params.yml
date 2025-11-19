@@ -1,0 +1,10 @@
+name: Demo Scenario for Success scores
+description: Use with Adversary Profile "Bounty Hunter - Success Rate Tester" on Windows target with elevated agent.
+discount: 0.4
+default_reward_update: 0
+success_weight: 1
+update_success_factors: True
+success_max_value: 2
+success_min_value: 0.5
+final_abilities:
+  - bd527b63-9f9e-46e0-9816-b8434d2b8989           # Current User
