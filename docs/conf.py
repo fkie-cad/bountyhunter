@@ -6,8 +6,8 @@ project = "Bounty Hunter"
 copyright = "2024-2025, FKIE"
 author = "FKIE"
 
-release = '1.0'
-version = '1.0.1'
+release = '1.1'
+version = '1.1.0'
 
 # -- General configuration
 
