@@ -7,6 +7,15 @@ discount: 0.9
 default_final_reward: 1000
 default_reward: 1
 default_reward_update: 200
+detectability_weight: 0
+default_detectability_factor: 1
+success_weight: 0
+default_success_factor: 1
+default_success_condition: no-error
+update_success_factors: False
+success_alpha: 0.3
+success_max_value: 2
+sucess_min_value: 0.5
 final_abilities:
   - ea713bc4-63f0-491c-9a6f-0b01d560b87e             # exfiltrate staged directory
 ability_rewards:
