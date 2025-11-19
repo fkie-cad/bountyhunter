@@ -2,10 +2,13 @@ from json import load
 
 
 class Agenda:
-    def __init__(self, name, ability_ids, requirements):
+    def __init__(self, name, ability_ids, requirements, reward, detectability, success_rate):
         self.name = name
         self.ability_ids = ability_ids
         self.requirements = []
+        self.reward = reward
+        self.detectability = detectability
+        self.success_rate = success_rate
         self._load_requirements(requirements)
 
     def _load_requirements(self, requirement_list):
@@ -54,7 +57,10 @@ class AgendaHelper:
             self.agendas.append(Agenda(
                 agenda["name"],
                 agenda["ability_ids"],
-                agenda["requirements"]
+                agenda["requirements"],
+                agenda.get("reward", 1000),
+                agenda.get("detectability", 1),
+                agenda.get("success_rate", 1)
             ))
 
     async def get_valid_agendas(self, ability_links):
