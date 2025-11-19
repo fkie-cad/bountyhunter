@@ -1,5 +1,5 @@
 name: Demo Scenario for Success scores
-description: Use with Adversary Profile "Bounty Hunter - Success Rate Tester" on Windows target with elevated agent.
+description: Use with Adversary Profile "Bounty Hunter - Demo Adversary Profile" for initial access demonstration using success factors.
 discount: 0.4
 default_reward_update: 0
 success_weight: 1
